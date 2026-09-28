@@ -1,0 +1,9 @@
+/* Optional print overrides for the V8 Church Planner.
+   Add these rules to the project's global stylesheet when the final PDF layout
+   is implemented. The planner intentionally remains visible in normal mode. */
+@media print {
+  .v8-church-print-page {
+    break-before: page;
+    page-break-before: always;
+  }
+}
