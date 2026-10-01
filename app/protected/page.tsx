@@ -43,8 +43,31 @@ export default async function ProtectedDashboardPage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/auth/login");
 
-  const { data: profile } = await supabase.from("profiles").select("full_name, role").eq("id", user.id).maybeSingle();
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("full_name, role")
+    .eq("id", user.id)
+    .maybeSingle();
+
   const role = profile?.role || "couple";
+
+  // Gli utenti coppia non devono entrare nella dashboard professionale.
+  // Li portiamo direttamente nella loro Area riservata sposi.
+  if (role === "couple") {
+    const { data: membership } = await supabase
+      .from("couple_members")
+      .select("couple_id")
+      .eq("user_id", user.id)
+      .limit(1)
+      .maybeSingle();
+
+    if (membership?.couple_id) {
+      redirect(`/protected/area-sposi/${membership.couple_id}`);
+    }
+
+    redirect("/auth/login?error=area_sposi_non_collegata");
+  }
+
   const isAdmin = role === "admin";
 
   let coupleIds: string[] = [];
