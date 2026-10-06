@@ -54,6 +54,7 @@ async function saveSection(formData: FormData) {
     flowers: String(formData.get("flowers") || "").trim() || null,
     structures: String(formData.get("structures") || "").trim() || null,
     notes: String(formData.get("notes") || "").trim() || null,
+    other_items: String(formData.get("other_items") || "").trim() || null,
   }, { onConflict: "project_id,section_key" });
   if (error) throw new Error(error.message);
   revalidatePath(`/protected/coppie/${coupleId}/progetto`);
@@ -170,7 +171,7 @@ export async function ProgettoFlorealeContent({ params }: { params: Promise<{ id
   if (!project) redirect(`/protected/coppie/${coupleId}`);
 
   const [{ data: sections }, { data: items }] = await Promise.all([
-    supabase.from("floral_project_sections").select("id,section_key,flowers,structures,notes")
+    supabase.from("floral_project_sections").select("id,section_key,flowers,structures,notes,other_items")
       .eq("project_id", project.id),
     supabase.from("floral_project_items").select("id,category,service_key,name,description,quantity,unit,include_in_quote,include_in_contract")
       .eq("project_id", project.id).order("sort_order", { ascending: true }),
