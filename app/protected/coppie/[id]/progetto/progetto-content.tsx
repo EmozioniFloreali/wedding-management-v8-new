@@ -196,6 +196,9 @@ export async function ProgettoFlorealeContent({ params }: { params: Promise<{ id
         <label className="text-sm font-semibold text-slate-700">Strutture da utilizzare o scelte (inserimento libero)
           <textarea name="structures" defaultValue={section?.structures || ""} rows={3} placeholder="Es. Candelabri; vasi; supporti..." className="mt-2 w-full rounded-xl border px-4 py-3"/>
         </label>
+        <label className="text-sm font-semibold text-slate-700">Altri elementi / richieste particolari
+          <textarea name="other_items" defaultValue={section?.other_items || ""} rows={3} placeholder="Elementi non compresi nelle scelte preimpostate..." className="mt-2 w-full rounded-xl border px-4 py-3"/>
+        </label>
         <label className="text-sm font-semibold text-slate-700">Note
           <textarea name="notes" defaultValue={section?.notes || ""} rows={2} className="mt-2 w-full rounded-xl border px-4 py-3"/>
         </label>
