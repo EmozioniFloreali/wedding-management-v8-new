@@ -222,7 +222,7 @@ export async function ProgettoFlorealeContent({ params }: { params: Promise<{ id
             <div><h3 className="font-bold">{item.name}</h3>{item.description && <p className="text-sm text-slate-600">{item.description}</p>}<p className="text-sm text-slate-500">Quantità: {item.quantity} {item.unit}</p></div>
             <form action={confirmItem} className="flex items-center gap-2">
               <input type="hidden" name="couple_id" value={coupleId}/><input type="hidden" name="item_id" value={item.id}/>
-              <input id={`confirm-${item.id}`} type="checkbox" name="selected" defaultChecked={item.include_in_quote && item.include_in_contract} onChange={() => {}} className="h-5 w-5"/>
+              <input id={`confirm-${item.id}`} type="checkbox" name="selected" defaultChecked={item.include_in_quote && item.include_in_contract} className="h-5 w-5"/>
               <label htmlFor={`confirm-${item.id}`} className="text-sm font-semibold">Confermato dalla sposa — preventivo + contratto</label>
               <button className="rounded-lg border bg-white px-3 py-2 text-sm font-semibold">Salva</button>
             </form>
