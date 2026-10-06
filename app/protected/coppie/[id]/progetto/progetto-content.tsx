@@ -257,6 +257,15 @@ export async function ProgettoFlorealeContent({ params }: { params: Promise<{ id
         })}
       </div>
     </section>;
+      <form action={saveSection} className="mt-4 grid gap-3">
+        <input type="hidden" name="project_id" value={project.id}/>
+        <input type="hidden" name="couple_id" value={coupleId}/>
+        <input type="hidden" name="section_key" value={category}/>
+        <label className="text-sm font-semibold text-slate-700">Altri elementi / richieste particolari
+          <textarea name="other_items" defaultValue={sectionMap.get(category)?.other_items || ""} rows={3} placeholder="Elementi non compresi nelle scelte preimpostate..." className="mt-2 w-full rounded-xl border px-4 py-3"/>
+        </label>
+        <button className="justify-self-start rounded-xl border bg-white px-5 py-3 font-semibold">Salva campo libero</button>
+      </form>
   };
 
   return <main className="min-h-screen bg-slate-50"><div className="mx-auto max-w-7xl px-6 py-8">
