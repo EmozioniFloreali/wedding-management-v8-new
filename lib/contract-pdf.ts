@@ -27,7 +27,7 @@ export type ContractData = {
     balance?: number | null;
     discount?: number | null;
     notes?: string | null;
-    items: Array<{ description: string; quantity: number; unit: string; unitPrice: number; discountPercent: number }>;
+    items: Array<{ description: string; quantity: number; unit: string }>;
   } | null;
 };
 
@@ -121,11 +121,9 @@ export function buildContractPdf(data: ContractData): Uint8Array {
   ].filter(Boolean));
 
   if (data.quote?.items?.length) {
-    lines.push("Riepilogo economico del preventivo:");
+    lines.push("Riepilogo delle voci confermate del preventivo:");
     data.quote.items.forEach((item, index) => {
-      const gross = item.quantity * item.unitPrice;
-      const net = gross * (1 - item.discountPercent / 100);
-      lines.push(`${index + 1}. ${item.description} – ${item.quantity} ${item.unit} – ${money(net)}`);
+      lines.push(`${index + 1}. ${item.description} – ${item.quantity} ${item.unit}`);
     });
     lines.push("");
   }
