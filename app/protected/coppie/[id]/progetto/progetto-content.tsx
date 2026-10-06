@@ -41,6 +41,42 @@ async function adminClient() {
   return supabase;
 }
 
+async function syncConfirmedItemsToQuote(supabase: any, coupleId: string, projectId: string) {
+  const { data: quote } = await supabase.from("quotes")
+    .select("id")
+    .eq("couple_id", coupleId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (!quote) return;
+
+  const { data: selectedItems } = await supabase.from("floral_project_items")
+    .select("id,category,name,description,quantity,unit,notes,sort_order,include_in_quote")
+    .eq("project_id", projectId)
+    .eq("include_in_quote", true)
+    .order("sort_order", { ascending: true });
+
+  await supabase.from("quote_items")
+    .delete()
+    .eq("quote_id", quote.id)
+    .like("notes", "floral_project_item_id:%");
+
+  const rows = (selectedItems || []).map((item: any, index: number) => ({
+    quote_id: quote.id,
+    area: item.category || null,
+    description: item.description ? `${item.name} — ${item.description}` : item.name,
+    quantity: item.quantity ?? 1,
+    unit: item.unit || "pz",
+    notes: `floral_project_item_id:${item.id}${item.notes ? ` — ${item.notes}` : ""}`,
+    sort_order: index + 1,
+  }));
+
+  if (rows.length) {
+    const { error } = await supabase.from("quote_items").insert(rows);
+    if (error) throw new Error(error.message);
+  }
+}
+ 
 async function saveSection(formData: FormData) {
   "use server";
   const supabase = await adminClient();
@@ -120,6 +156,7 @@ async function savePreset(formData: FormData) {
     const { error } = await supabase.from("floral_project_items").insert(payload);
     if (error) throw new Error(error.message);
   }
+  await syncConfirmedItemsToQuote(supabase, coupleId, projectId);
   revalidatePath(`/protected/coppie/${coupleId}/progetto`);
 }
 
@@ -135,6 +172,8 @@ async function confirmItem(formData: FormData) {
     include_in_contract: selected,
   }).eq("id", itemId);
   if (error) throw new Error(error.message);
+  const { data: item } = await supabase.from("floral_project_items").select("project_id").eq("id", itemId).maybeSingle();
+  if (item?.project_id) await syncConfirmedItemsToQuote(supabase, coupleId, item.project_id);
   revalidatePath(`/protected/coppie/${coupleId}/progetto`);
 }
 
@@ -152,6 +191,7 @@ async function saveProject(formData: FormData) {
     total_amount: Number.isFinite(total as number) ? total : null,
   }).eq("id", id);
   if (error) throw new Error(error.message);
+  await syncConfirmedItemsToQuote(supabase, coupleId, id);
   revalidatePath(`/protected/coppie/${coupleId}/progetto`);
 }
 
