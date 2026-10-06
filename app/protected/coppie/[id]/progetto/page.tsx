@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
+export const dynamic = "force-dynamic";
+
 const SECTIONS = [
   ["chiesa","Composizioni Chiesa"],
   ["sala_ricevimento","Composizioni Sala Ricevimento"],
