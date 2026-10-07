@@ -49,7 +49,7 @@ function buildPdf(data:QuoteDocumentData){
       const isHead=/^(PREVENTIVO PROFESSIONALE|DATI |PROGETTO |VOCI |RIEPILOGO |VALIDITA )/.test(l);
       const y=780-i*19;
       if(l.startsWith("TOTALE COMPLESSIVO:")){
-        stream+="q 0.95 0.96 0.92 rg 45 "+(y-8)+" 505 28 re f Q\n";
+        stream+="q 0.95 0.96 0.92 rg 45 "+(y-9)+" 505 22 re f Q\n";
         stream+="0.36 0.44 0.21 rg\n/F2 13 Tf\n50 "+y+" Td ("+pdfEscape(l)+") Tj -50 -"+y+" Td\n";
       } else {
         if(isMain) stream+="0.36 0.44 0.21 rg\n";
