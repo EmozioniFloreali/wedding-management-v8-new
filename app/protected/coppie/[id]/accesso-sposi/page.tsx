@@ -1,7 +1,7 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
 async function requireAdmin() {
@@ -33,11 +33,10 @@ async function setPortalAccess(formData: FormData) {
   redirect(`/protected/coppie/${coupleId}/accesso-sposi?saved=1`);
 }
 
-export default async function AccessoSposiPage({ params, searchParams }: {
+async function AccessoSposiContent({ params, searchParams }: {
   params: Promise<{ id: string }>;
   searchParams: Promise<{ saved?: string }>;
 }) {
-  await connection();
   const { id } = await params;
   const { saved } = await searchParams;
   const { supabase } = await requireAdmin();
