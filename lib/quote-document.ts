@@ -21,7 +21,7 @@ function pdfEscape(s:string){
   };
   let o="";
   for(const ch of s)o+=m[ch]??ch;
-  return o.replace(/\\/g,"\\\\").replace(/\\(/g,"\\(").replace(/\\)/g,"\\)");
+  return o.split("\\").join("\\\\").split("(").join("\\(").split(")").join("\\)");
 }
 
 function buildPdf(data:QuoteDocumentData){
