@@ -338,7 +338,7 @@ export async function ProgettoFlorealeContent({ params, searchParams }: { params
     const section = sectionMap.get(category);
     return <section className="rounded-2xl border bg-white p-6 shadow-sm">
       <h2 className="text-xl font-bold">{title}</h2>
-      <p className="mt-1 text-sm text-slate-500">Spunta solo ciò che è stato effettivamente scelto dalla sposa. La conferma confluirà nel preventivo e nel contratto.</p>
+      <p className="mt-1 text-sm text-slate-500">Spunta solo ciò che è stato effettivamente scelto dalla sposa. La selezione verrà trasferita nel preventivo quando prepari o aggiorni il preventivo.</p>
       <div className="mt-5 space-y-4">
         {options.map(([serviceKey, name]) => {
           const item = itemList.find(i => i.service_key === serviceKey);
@@ -380,7 +380,7 @@ export async function ProgettoFlorealeContent({ params, searchParams }: { params
 
     <section className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-6">
       <h2 className="text-xl font-bold text-amber-950">Regola economica</h2>
-      <p className="mt-2 text-sm text-amber-900">Il progetto non assegna prezzi alle singole composizioni. Il totale economico resta unico. Le voci selezionate per il preventivo saranno la base della proposta economica; solo il preventivo confermato dalla coppia genererà il contratto.</p>
+      <p className="mt-2 text-sm text-amber-900">Il progetto non assegna prezzi alle singole composizioni. Il totale economico resta unico. Le voci selezionate per il preventivo saranno la base della proposta economica; il contratto viene generato automaticamente quando il preventivo viene presentato, senza attendere la conferma della coppia.</p>
     </section>
   </div></main>;
 }
