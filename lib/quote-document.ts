@@ -41,8 +41,8 @@ function buildPdf(data:QuoteDocumentData){
   const pages=obj("<< /Type /Pages /Kids [] /Count 0 >>");
   const pageIds:number[]=[];
   for(let start=0;start<lines.length;start+=42){
-    const pg=lines.slice(start,start+42); let stream="BT\n";
-    pg.forEach((l,i)=>{const isHead=/^(EMOZIONI FLOREALI|WEDDING|PREVENTIVO|DATI |PROGETTO |VOCI |RIEPILOGO |VALIDITA )/.test(l); stream+=(isHead?"/F2 11 Tf\n":"/F1 9 Tf\n")+"50 "+(790-i*17)+" Td\n("+pdfEscape(l)+") Tj\n";});
+    const pg=lines.slice(start,start+42); let stream="BT\n/F1 9 Tf\n50 790 Td\n";
+    pg.forEach((l,i)=>{const isHead=/^(EMOZIONI FLOREALI|WEDDING|PREVENTIVO|DATI |PROGETTO |VOCI |RIEPILOGO |VALIDITA )/.test(l); stream+=(isHead?"/F2 11 Tf\n":"/F1 9 Tf\n")+"("+pdfEscape(l)+") Tj\n0 -17 Td\n";});
     stream+="ET\n";
     const sid=obj("<< /Length "+Buffer.byteLength(stream,"latin1")+" >>\nstream\n"+stream+"endstream");
     pageIds.push(obj("<< /Type /Page /Parent "+pages+" 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 "+font+" 0 R /F2 "+bold+" 0 R >> >> /Contents "+sid+" 0 R >>"));
