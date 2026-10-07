@@ -15,9 +15,9 @@ function winAnsi(text:string){
   };
   let out="";
   for(const ch of text)out+=map[ch]??ch;
-  return out.normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").replace(/[^\\x20-\\x7E\\n]/g,"?");
-}
-function pdfEscape(text:string){return winAnsi(text).replace(/\\/g,"\\\\").replace(/\(/g,"\\(").replace(/\)/g,"\\)")}\nfunction wrap(text:string,max=92){const words=text.split(/\s+/).filter(Boolean);const lines:string[]=[];let line="";for(const w of words){const n=line?line+" "+w:w;if(n.length<=max)line=n;else{if(line)lines.push(line);line=w}}if(line)lines.push(line);return lines.length?lines:[""]}
+  out=out.normalize("NFD");
+  let safe=""; for(const ch of out){const n=ch.charCodeAt(0); if(ch==="\n" || (n>=32 && n<=126)) safe+=ch;} return safe;
+function pdfEscape(text:string){return winAnsi(text).split("\\").join("\\\\").split("(").join("\\(").split(")").join("\\)")}
 function money(v:number|null|undefined){return new Intl.NumberFormat("it-IT",{style:"currency",currency:"EUR",minimumFractionDigits:2}).format(Number(v||0))}
 function dateIt(v?:string|null){if(!v)return "";const d=new Date(v.includes("T")?v:v+"T12:00:00");if(Number.isNaN(d.getTime()))return v;return new Intl.DateTimeFormat("it-IT",{dateStyle:"long",timeZone:"Europe/Rome"}).format(d)}
 function addSection(lines:string[],title:string,body:string[]){lines.push(title);for(const p of body)for(const l of wrap(p))lines.push(l);lines.push("")}
