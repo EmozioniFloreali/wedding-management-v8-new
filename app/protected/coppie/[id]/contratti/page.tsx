@@ -198,6 +198,22 @@ export default async function ContrattiPage({
                       <p className="text-3xl font-bold text-slate-900">
                         {money(contract.total_amount)}
                       </p>
+                      <div className="mt-3 flex flex-wrap gap-2 lg:justify-end">
+                        <a
+                          href={`/protected/coppie/${coupleId}/contratti/documento?contract_id=${contract.id}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="rounded-lg bg-slate-900 px-3 py-2 text-xs font-semibold text-white"
+                        >
+                          PDF contratto
+                        </a>
+                        <a
+                          href={`/protected/coppie/${coupleId}/contratti/documento?contract_id=${contract.id}&format=docx`}
+                          className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-800"
+                        >
+                          DOCX contratto
+                        </a>
+                      </div>
                     </div>
                   </div>
 
