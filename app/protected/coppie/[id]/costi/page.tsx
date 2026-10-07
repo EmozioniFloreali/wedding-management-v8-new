@@ -1,7 +1,7 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
 const CATEGORIES = [
@@ -131,14 +131,13 @@ function euro(value: number | null | undefined) {
   }).format(Number(value || 0));
 }
 
-export default async function CostiMatrimonioPage({
+async function CostiMatrimonioContent({
   params,
   searchParams,
 }: {
   params: Promise<{ id: string }>;
   searchParams?: Promise<{ saved?: string }>;
 }) {
-  await connection();
   const { id: coupleId } = await params;
   const query = searchParams ? await searchParams : {};
   const { supabase } = await adminClient();
@@ -377,5 +376,25 @@ export default async function CostiMatrimonioPage({
         </section>
       </div>
     </main>
+  );
+}
+
+
+export default function CostiMatrimonioPage(props: {
+  params: Promise<{ id: string }>;
+  searchParams?: Promise<{ saved?: string }>;
+}) {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen bg-slate-50 px-6 py-8">
+          <div className="mx-auto max-w-7xl rounded-2xl border bg-white p-8 text-slate-600 shadow-sm">
+            Caricamento del rendiconto…
+          </div>
+        </main>
+      }
+    >
+      <CostiMatrimonioContent {...props} />
+    </Suspense>
   );
 }
