@@ -371,8 +371,9 @@ export async function ProgettoFlorealeContent({ params, searchParams }: { params
         <select name="status" defaultValue={project.status} className="rounded-xl border bg-white px-4 py-3"><option value="draft">Bozza</option><option value="in_progress">In lavorazione</option><option value="approved">Approvato</option><option value="completed">Completato</option><option value="archived">Archiviato</option></select>
         <input name="total_amount" defaultValue={project.total_amount ?? ""} placeholder="Totale progetto €" className="rounded-xl border px-4 py-3"/>
         <button className="rounded-xl bg-slate-900 px-4 py-3 font-semibold text-white">Salva progetto</button>
-        <textarea name="notes" defaultValue={project.notes || ""} placeholder="Note generali..." rows={3} className="rounded-xl border px-4 py-3 md:col-span-4"/>\n      <div className="md:col-span-4 rounded-xl border border-blue-200 bg-blue-50 p-4"><p className="text-sm text-blue-900">Il progetto è indipendente da preventivo e contratto. Le modifiche vengono trasferite al preventivo solo quando premi il pulsante seguente.</p><form action={prepareQuoteFromProject} className="mt-3"><input type="hidden" name="project_id" value={project.id}/><input type="hidden" name="couple_id" value={coupleId}/><button className="rounded-xl bg-blue-700 px-5 py-3 font-semibold text-white">Prepara / aggiorna preventivo</button></form></div>
+        <textarea name="notes" defaultValue={project.notes || ""} placeholder="Note generali..." rows={3} className="rounded-xl border px-4 py-3 md:col-span-4"/>
       </form>
+      <div className="mt-4 rounded-xl border border-blue-200 bg-blue-50 p-4"><p className="text-sm text-blue-900">Il progetto è indipendente da preventivo e contratto. Le modifiche vengono trasferite al preventivo solo quando premi il pulsante seguente.</p><form action={prepareQuoteFromProject} className="mt-3"><input type="hidden" name="project_id" value={project.id}/><input type="hidden" name="couple_id" value={coupleId}/><button className="rounded-xl bg-blue-700 px-5 py-3 font-semibold text-white">Prepara / aggiorna preventivo</button></form></div>
     </section>
 
     <div className="mt-6 grid gap-6">{GENERAL_SECTIONS.map(([key,title]) => renderGeneralSection(key,title))}</div>
@@ -381,7 +382,7 @@ export async function ProgettoFlorealeContent({ params, searchParams }: { params
 
     <section className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-6">
       <h2 className="text-xl font-bold text-amber-950">Regola economica</h2>
-      <p className="mt-2 text-sm text-amber-900">Il progetto non assegna prezzi alle singole composizioni. Il totale economico resta unico. Le voci spuntate come confermate saranno la base per la composizione del preventivo e, successivamente, del contratto.</p>
+      <p className="mt-2 text-sm text-amber-900">Il progetto non assegna prezzi alle singole composizioni. Il totale economico resta unico. Le voci selezionate per il preventivo saranno la base della proposta economica; solo il preventivo confermato dalla coppia genererà il contratto.</p>
     </section>
   </div></main>;
 }
