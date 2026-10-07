@@ -96,7 +96,9 @@ function xmlCell(text:string,bold=false){
   return `<w:tc><w:tcPr><w:shd w:fill="F5F6F1"/><w:tcMar w:top="100" w:start="120" w:bottom="100" w:end="120"/></w:tcPr>${xmlParagraph(text,bold,20,bold?"5D6F35":"333333")}</w:tc>`;
 }
 function xmlTable(rows:string[][]){
-  return `<w:tbl><w:tblPr><w:tblBorders><w:top w:val="single" w:sz="4" w:color="D9DED0"/><w:left w:val="single" w:sz="4" w:color="D9DED0"/><w:bottom w:val="single" w:sz="4" w:color="D9DED0"/><w:right w:val="single" w:sz="4" w:color="D9DED0"/><w:insideH w:val="single" w:sz="4" w:color="D9DED0"/><w:insideV w:val="single" w:sz="4" w:color="D9DED0"/></w:tblBorders></w:tblPr>${rows.map(r=>"<w:tr>"+r.map((c,i)=>xmlCell(c,i===0)).join("")+"</w:tr>").join("")}</w:tbl>`;
+  const cols=Math.max(1,...rows.map(r=>r.length));
+  const grid=Array.from({length:cols},()=>"<w:gridCol w:w=\"4500\"/>").join("");
+  return `<w:tbl><w:tblPr><w:tblW w:w="10000" w:type="pct"/><w:tblLayout w:type="autofit"/><w:tblBorders><w:top w:val="single" w:sz="4" w:color="D9DED0"/><w:left w:val="single" w:sz="4" w:color="D9DED0"/><w:bottom w:val="single" w:sz="4" w:color="D9DED0"/><w:right w:val="single" w:sz="4" w:color="D9DED0"/><w:insideH w:val="single" w:sz="4" w:color="D9DED0"/><w:insideV w:val="single" w:sz="4" w:color="D9DED0"/></w:tblBorders></w:tblPr><w:tblGrid>${grid}</w:tblGrid>${rows.map(r=>"<w:tr>"+r.map((c,i)=>xmlCell(c,i===0)).join("")+"</w:tr>").join("")}</w:tbl>`;
 }
 
 export function buildQuoteDocx(data:QuoteDocumentData){
