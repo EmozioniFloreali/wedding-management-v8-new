@@ -16,7 +16,7 @@ export default function ProgettoFlorealePage({
         </div>
       </main>
     }>
-      <ProgettoFlorealeContent params={params} />
+      <ProgettoFlorealeContent params={params} searchParams={searchParams} />
     </Suspense>
   );
 }
