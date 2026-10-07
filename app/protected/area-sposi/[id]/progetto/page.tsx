@@ -67,7 +67,8 @@ export default async function ProgettoFlorealeSposiPage({
       .maybeSingle(),
   ]);
 
-  if (!couple || !project) redirect(`/protected/area-sposi/${id}`);\n  if (!couple.portal_enabled && profile?.role !== "admin") redirect("/protected");
+  if (!couple || !project) redirect(`/protected/area-sposi/${id}`);
+  if (!couple.portal_enabled && profile?.role !== "admin") redirect("/protected");
 
   const [{ data: sections }, { data: items }] = await Promise.all([
     supabase
