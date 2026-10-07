@@ -3,8 +3,10 @@ import { ProgettoFlorealeContent } from "./progetto-content";
 
 export default function ProgettoFlorealePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams?: Promise<{ saved?: string; error?: string }>;
 }) {
   return (
     <Suspense fallback={
