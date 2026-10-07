@@ -9,9 +9,10 @@ export type ContractData = {
   quote?: { status?: string | null; vatRate?: number | null; total?: number | null; deposit?: number | null; balance?: number | null; discount?: number | null; notes?: string | null; items: Array<{ description: string; quantity: number; unit: string }> } | null;
 };
 
-function winAnsi(text:string){const map:Record<string,string>={"€":"EUR","–":"-","—":"-","“":"\"","”":"\"","‘":"'","’":"'","…":"...","×":"x","·":"-","«":"\"","»":"\"};let out="";for(const ch of text)out+=map[ch]??ch;return out.normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").replace(/[^\\x20-\\x7E]/g,"?")}
-function pdfEscape(text:string){return winAnsi(text).replace(/\\/g,"\\\\").replace(/\\(/g,"\\\\(").replace(/\\)/g,"\\\\)")}
-function wrap(text:string,max=92){const words=text.split(/\\s+/).filter(Boolean);const lines:string[]=[];let line="";for(const w of words){const n=line?line+" "+w:w;if(n.length<=max)line=n;else{if(line)lines.push(line);line=w}}if(line)lines.push(line);return lines.length?lines:[""]}
+function winAnsi(text:string){const map:Record<string,string>={"€":"EUR","–":"-","—":"-","“":"\"","”":"\"","‘":"'","’":"'","…":"...","×":"x","·":"-","«":"\"","»":"\"};let out="";for(const ch of text)out+=map[ch]??ch;return out.normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^\x20-\x7E]/g,"?")}
+function pdfEscape(text:string){return winAnsi(text).replace(/\\/g,"\\\\").replace(/\(/g,"\\(").replace(/\)/g,"\\)")}
+function wrap(text:string,max=92){const words=text.split(/\s+/).filter(Boolean);const lines:string[]=[];let line="";for(const w of words){const n=line?line+" "+w:w;if(n.length<=max)line=n;else{if(line)lines.push(line);line=w}}if(line)lines.push(line);return lines.length?lines:[""]}
+
 function money(v:number|null|undefined){return new Intl.NumberFormat("it-IT",{minimumFractionDigits:2,maximumFractionDigits:2}).format(Number(v||0))+" EUR"}
 function dateIt(v?:string|null){if(!v)return "";const d=new Date(v.includes("T")?v:v+"T12:00:00");if(Number.isNaN(d.getTime()))return v;return new Intl.DateTimeFormat("it-IT",{dateStyle:"long",timeZone:"Europe/Rome"}).format(d)}
 function addSection(lines:string[],title:string,body:string[]){lines.push(title);for(const p of body)for(const l of wrap(p))lines.push(l);lines.push("")}
