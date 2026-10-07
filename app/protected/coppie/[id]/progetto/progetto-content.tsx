@@ -94,6 +94,7 @@ async function saveSection(formData: FormData) {
   });
   if (error) throw new Error(error.message);
   revalidatePath(`/protected/coppie/${coupleId}/progetto`);
+  redirect(`/protected/coppie/${coupleId}/progetto?saved=section`);
 }
 
 async function addComposition(formData: FormData) {
@@ -116,6 +117,7 @@ async function addComposition(formData: FormData) {
   });
   if (error) throw new Error(error.message);
   revalidatePath(`/protected/coppie/${coupleId}/progetto`);
+  redirect(`/protected/coppie/${coupleId}/progetto?saved=composition`);
 }
 
 async function savePreset(formData: FormData) {
@@ -158,6 +160,7 @@ async function savePreset(formData: FormData) {
   }
   await syncConfirmedItemsToQuote(supabase, coupleId, projectId);
   revalidatePath(`/protected/coppie/${coupleId}/progetto`);
+  redirect(`/protected/coppie/${coupleId}/progetto?saved=preset`);
 }
 
 async function confirmItem(formData: FormData) {
@@ -175,6 +178,7 @@ async function confirmItem(formData: FormData) {
   const { data: item } = await supabase.from("floral_project_items").select("project_id").eq("id", itemId).maybeSingle();
   if (item?.project_id) await syncConfirmedItemsToQuote(supabase, coupleId, item.project_id);
   revalidatePath(`/protected/coppie/${coupleId}/progetto`);
+  redirect(`/protected/coppie/${coupleId}/progetto?saved=item`);
 }
 
 async function saveProject(formData: FormData) {
@@ -193,11 +197,13 @@ async function saveProject(formData: FormData) {
   if (error) throw new Error(error.message);
   await syncConfirmedItemsToQuote(supabase, coupleId, id);
   revalidatePath(`/protected/coppie/${coupleId}/progetto`);
+  redirect(`/protected/coppie/${coupleId}/progetto?saved=project`);
 }
 
-export async function ProgettoFlorealeContent({ params }: { params: Promise<{ id: string }> }) {
+export async function ProgettoFlorealeContent({ params, searchParams }: { params: Promise<{ id: string }>; searchParams?: Promise<{ saved?: string; error?: string }> }) {
   await connection();
   const { id: coupleId } = await params;
+  const resolvedSearchParams = searchParams ? await searchParams : {};
   const supabase = await adminClient();
 
   const { data: couple } = await supabase.from("couples")
@@ -218,6 +224,20 @@ export async function ProgettoFlorealeContent({ params }: { params: Promise<{ id
   ]);
 
   const coupleName = [couple.partner1_first_name,couple.partner1_last_name,couple.partner2_first_name,couple.partner2_last_name].filter(Boolean).join(" ");
+  const saved = resolvedSearchParams.saved;
+  const notice = saved === "section"
+    ? "Dati della sezione salvati correttamente."
+    : saved === "composition"
+      ? "Composizione aggiunta correttamente."
+      : saved === "preset"
+        ? "Scelta salvata correttamente."
+        : saved === "item"
+          ? "Conferma aggiornata correttamente."
+          : saved === "project"
+            ? "Dati del progetto salvati correttamente."
+            : null;
+
+
   const sectionMap = new Map((sections || []).map(s => [s.section_key, s]));
   const itemList = items || [];
 
