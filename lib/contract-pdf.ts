@@ -9,17 +9,9 @@ export type ContractData = {
   quote?: { status?: string | null; vatRate?: number | null; total?: number | null; deposit?: number | null; balance?: number | null; discount?: number | null; notes?: string | null; items: Array<{ description: string; quantity: number; unit: string }> } | null;
 };
 
-function winAnsi(text:string){
-  const map:Record<string,string>={
-    "€":"EUR ","–":" - ","—":" - ","“":"\"","”":"\"","‘":"'","’":"'","…":"...","×":"x","·":" - ","«":"\"","»":"\""
-  };
-  let out="";
-  for(const ch of text)out+=map[ch]??ch;
-  out=out.normalize("NFD");
-  let safe=""; for(const ch of out){const n=ch.charCodeAt(0); if(ch==="\n" || (n>=32 && n<=126)) safe+=ch;} return safe;
-}
-function pdfEscape(text:string){return winAnsi(text).split("\\").join("\\\\").split("(").join("\\(").split(")").join("\\)")}
-function wrap(text:string,max=92){const words=text.split(/\s+/).filter(Boolean);const lines:string[]=[];let line="";for(const w of words){const next=line?line+" "+w:w;if(next.length<=max)line=next;else{if(line)lines.push(line);line=w}}if(line)lines.push(line);return lines.length?lines:[""]}
+function winAnsi(text:string){const map:Record<string,string>={"€":"\x80","–":"\x96","—":"\x97","“":"\x93","”":"\x94","‘":"\x91","’":"\x92","…":"\x85","×":"\xD7","·":"\xB7","«":"\xAB","»":"\xBB"};let out="";for(const ch of text)out+=map[ch]??ch;return out.normalize("NFC").replace(/[^\x00-\xFF]/g,"?")}
+function pdfEscape(text:string){return winAnsi(text).replace(/\\/g,"\\\\").replace(/\(/g,"\\(").replace(/\)/g,"\\)")}
+function wrap(text:string,max=92){const words=text.split(/\s+/).filter(Boolean);const lines:string[]=[];let line="";for(const w of words){const n=line?line+" "+w:w;if(n.length<=max)line=n;else{if(line)lines.push(line);line=w}}if(line)lines.push(line);return lines.length?lines:[""]}
 function money(v:number|null|undefined){return new Intl.NumberFormat("it-IT",{style:"currency",currency:"EUR",minimumFractionDigits:2}).format(Number(v||0))}
 function dateIt(v?:string|null){if(!v)return "";const d=new Date(v.includes("T")?v:v+"T12:00:00");if(Number.isNaN(d.getTime()))return v;return new Intl.DateTimeFormat("it-IT",{dateStyle:"long",timeZone:"Europe/Rome"}).format(d)}
 function addSection(lines:string[],title:string,body:string[]){lines.push(title);for(const p of body)for(const l of wrap(p))lines.push(l);lines.push("")}
@@ -79,23 +71,21 @@ export function buildContractPdf(data:ContractData):Uint8Array{
   const font=add("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>");
   const bold=add("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>");
   const pages=add("<< /Type /Pages /Kids [] /Count 0 >>");const pageIds:number[]=[];
-  for(let start=0;start<lines.length;start+=36){
-    const pg=lines.slice(start,start+36); let stream="";
-    stream+="q 0.36 0.44 0.21 rg 48 806 499 4 re f Q\n";
-    stream+="q 0.82 0.05 0.28 rg 48 54 499 1 re f Q\n";
-    stream+="BT\n";
+  for(let start=0;start<lines.length;start+=34){
+    const pg=lines.slice(start,start+34);
+    let stream="q 0.36 0.44 0.21 rg 48 806 499 4 re f Q\nq 0.82 0.05 0.28 rg 48 54 499 1 re f Q\nBT\n";
     pg.forEach((l,i)=>{
       const y=780-i*20;
-      const isMain=l==="EMOZIONI FLOREALI"||l==="WEDDING & FLORAL DESIGN";
-      const isHead=/^(CONTRATTO |SERVIZIO |ART\\. |DATI |SOTTOSCRIZIONE)/.test(l);
+      const main=i<3;
+      const head=/^(CONTRATTO |SERVIZIO |ART\. |DATI |SOTTOSCRIZIONE)/.test(l);
       if(l.startsWith("TOTALE CONTRATTO:")){
         stream+="q 0.95 0.96 0.92 rg 44 "+(y-9)+" 507 24 re f Q\n";
-        stream+="0.36 0.44 0.21 rg\n/F2 13 Tf\n48 "+y+" Td ("+pdfEscape(l)+") Tj -48 -"+y+" Td\n";
-      } else {
-        if(isMain)stream+="0.36 0.44 0.21 rg\n";
-        else if(isHead)stream+="0.82 0.05 0.28 rg\n";
-        else stream+="0.13 0.13 0.13 rg\n";
-        stream+=(isMain||isHead?"/F2 11 Tf\n":"/F1 9.5 Tf\n")+"48 "+y+" Td ("+pdfEscape(l)+") Tj -48 -"+y+" Td\n";
+        stream+="0.36 0.44 0.21 rg\n/F2 13 Tf\n1 0 0 1 48 "+y+" Tm ("+pdfEscape(l)+") Tj\n";
+      }else{
+        if(main)stream+="0.36 0.44 0.21 rg\n/F2 11 Tf\n";
+        else if(head)stream+="0.82 0.05 0.28 rg\n/F2 10 Tf\n";
+        else stream+="0.13 0.13 0.13 rg\n/F1 9.2 Tf\n";
+        stream+="1 0 0 1 48 "+y+" Tm ("+pdfEscape(l)+") Tj\n";
       }
     });
     stream+="ET\n";
