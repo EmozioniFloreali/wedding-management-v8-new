@@ -329,7 +329,7 @@ export async function ProgettoFlorealeContent({ params, searchParams }: { params
     </section>;
   };
 
-  return <main className="min-h-screen bg-slate-50"><div className="mx-auto max-w-7xl px-6 py-8">
+  return <main className="min-h-screen bg-slate-50">{notice && <div className="mx-auto max-w-7xl px-6 pt-6"><div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 font-semibold text-emerald-800">✓ {notice}</div></div>}<div className="mx-auto max-w-7xl px-6 py-8">
     <div className="mb-8"><Link href={`/protected/coppie/${coupleId}`} className="text-sm underline">← Torna alla scheda coppia</Link><h1 className="mt-4 text-3xl font-bold">Progetto floreale</h1><p className="mt-1 text-slate-600">{coupleName}</p></div>
 
     <section className="rounded-2xl border bg-white p-6 shadow-sm">
