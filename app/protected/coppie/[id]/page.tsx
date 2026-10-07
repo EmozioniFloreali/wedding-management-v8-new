@@ -38,6 +38,7 @@ export default async function CoupleDetailPage({ params }: PageProps) {
       email,
       phone,
       notes,
+      portal_enabled,
       weddings (
         id,
         wedding_date,
@@ -301,6 +302,21 @@ export default async function CoupleDetailPage({ params }: PageProps) {
             </p>
           </div>
 
+          {/* ACCESSO AREA SPOSI */}
+          <div className={`rounded-xl border p-6 ${couple.portal_enabled ? "border-emerald-200 bg-emerald-50" : "border-slate-200 bg-slate-50"}`}>
+            <div className="text-2xl">{couple.portal_enabled ? "🔓" : "🔒"}</div>
+            <h3 className="mt-4 font-semibold">Accesso Area Sposi</h3>
+            <p className="mt-2 text-sm text-muted-foreground">
+              {couple.portal_enabled ? "La coppia può accedere e interagire." : "Gestione esclusivamente professionale."}
+            </p>
+            <Link
+              href={`/protected/coppie/${couple.id}/accesso-sposi`}
+              className="mt-5 inline-flex w-full items-center justify-center rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background hover:opacity-90"
+            >
+              Gestisci accesso
+            </Link>
+          </div>
+
           {/* CALENDARIO */}
           <div className="rounded-xl border bg-background p-6">
             <CalendarDays className="h-7 w-7" />
@@ -377,5 +393,4 @@ export default async function CoupleDetailPage({ params }: PageProps) {
     </main>
   );
 }
-
 
