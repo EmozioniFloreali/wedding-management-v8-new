@@ -254,14 +254,14 @@ export default async function PreventivoPage({ params }: { params: Promise<{ id:
             {quote && (
               <>
                 <Link
-                  href={`/protected/coppie/${coupleId}/preventivo/documento?format=pdf&quote_id=${quote.id}`}
+                  href={`/protected/coppie/${coupleId}/preventivo/documento?format=pdf&quote_id=${quote.id}&template=professional-v2`}
                   target="_blank"
                   className="rounded-xl bg-emerald-700 px-4 py-3 text-sm font-semibold text-white"
                 >
                   PDF / Stampa
                 </Link>
                 <Link
-                  href={`/protected/coppie/${coupleId}/preventivo/documento?format=docx&quote_id=${quote.id}`}
+                  href={`/protected/coppie/${coupleId}/preventivo/documento?format=docx&quote_id=${quote.id}&template=professional-v2`}
                   className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold"
                 >
                   Scarica DOCX
