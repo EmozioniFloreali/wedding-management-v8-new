@@ -122,3 +122,26 @@ async function AccessoSposiContent({ params, searchParams }: {
     </main>
   );
 }
+
+
+export default function AccessoSposiPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ saved?: string }>;
+}) {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen bg-slate-50 p-10">
+          <div className="mx-auto max-w-4xl rounded-2xl border bg-white p-7">
+            Caricamento…
+          </div>
+        </main>
+      }
+    >
+      <AccessoSposiContent params={params} searchParams={searchParams} />
+    </Suspense>
+  );
+}
