@@ -75,7 +75,6 @@ async function prepareQuoteFromProject(formData: FormData) {
   if (quoteId) {
     const { error } = await supabase.from("quotes").update({
       wedding_id: project.wedding_id,
-      floral_project_id: project.id,
       title: `Preventivo progetto floreale v${version}`,
       total_amount: Number(project.total_amount || 0),
       updated_at: new Date().toISOString(),
