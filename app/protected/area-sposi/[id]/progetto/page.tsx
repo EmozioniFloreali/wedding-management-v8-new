@@ -57,7 +57,7 @@ export default async function ProgettoFlorealeSposiPage({
   const [{ data: couple }, { data: project }] = await Promise.all([
     supabase
       .from("couples")
-      .select("partner1_first_name,partner1_last_name,partner2_first_name,partner2_last_name")
+      .select("partner1_first_name,partner1_last_name,partner2_first_name,partner2_last_name,portal_enabled")
       .eq("id", id)
       .maybeSingle(),
     supabase
@@ -67,7 +67,7 @@ export default async function ProgettoFlorealeSposiPage({
       .maybeSingle(),
   ]);
 
-  if (!couple || !project) redirect(`/protected/area-sposi/${id}`);
+  if (!couple || !project) redirect(`/protected/area-sposi/${id}`);\n  if (!couple.portal_enabled && profile?.role !== "admin") redirect("/protected");
 
   const [{ data: sections }, { data: items }] = await Promise.all([
     supabase
@@ -177,7 +177,7 @@ export default async function ProgettoFlorealeSposiPage({
           <h2 className="text-lg font-bold text-amber-950">Come procediamo</h2>
           <p className="mt-2 text-sm text-amber-900">
             Il progetto floreale viene elaborato da Emozioni Floreali. Le voci contrassegnate come
-            confermate sono quelle destinate al preventivo e al contratto. Non vengono mostrati prezzi
+            selezionate per il preventivo verranno trasferite nel preventivo quando Emozioni Floreali prepara o aggiorna il preventivo. Non vengono mostrati prezzi
             per le singole composizioni.
           </p>
         </section>
