@@ -46,7 +46,7 @@ export async function GET(request:NextRequest,{params}:{params:Promise<{id:strin
   const filename="Contratto_"+coupleSlug+"_v"+contract.version_number;
   if(format==="docx"){
     const bytes=buildContractDocx(data);
-    return new NextResponse(bytes as BodyInit,{headers:{"Content-Type":"application/vnd.openxmlformats-officedocument.wordprocessingml.document","Content-Disposition:'attachment; filename=\""+filename+".docx\"'":"attachment","Cache-Control":"no-store"}});
+    return new NextResponse(bytes as BodyInit,{headers:{"Content-Type":"application/vnd.openxmlformats-officedocument.wordprocessingml.document","Content-Disposition":"attachment; filename=\""+filename+".docx\"","Cache-Control":"no-store"}});
   }
   const bytes=buildContractPdf(data);
   return new NextResponse(bytes as BodyInit,{headers:{"Content-Type":"application/pdf","Content-Disposition":"inline; filename=\""+filename+".pdf\"","Cache-Control":"no-store"}});
