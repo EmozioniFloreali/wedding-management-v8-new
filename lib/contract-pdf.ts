@@ -99,8 +99,8 @@ export function buildContractPdf(data:ContractData):Uint8Array{
       }
     });
     stream+="ET\n";
-    const sid=obj("<< /Length "+Buffer.byteLength(stream,"latin1")+" >>\nstream\n"+stream+"endstream");
-    pageIds.push(obj("<< /Type /Page /Parent "+pages+" 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 "+font+" 0 R /F2 "+bold+" 0 R >> >> /Contents "+sid+" 0 R >>"));
+    const sid=add("<< /Length "+Buffer.byteLength(stream,"latin1")+" >>\nstream\n"+stream+"endstream");
+    pageIds.push(add("<< /Type /Page /Parent "+pages+" 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 "+font+" 0 R /F2 "+bold+" 0 R >> >> /Contents "+sid+" 0 R >>"));
   }
   objects[pages-1]="<< /Type /Pages /Kids ["+pageIds.map(x=>x+" 0 R").join(" ")+"] /Count "+pageIds.length+" >>";const catalog=add("<< /Type /Catalog /Pages "+pages+" 0 R >>");
   const chunks=["%PDF-1.4\n"];const offsets=[0];let offset=Buffer.byteLength(chunks[0],"latin1");for(let i=0;i<objects.length;i++){const o=(i+1)+" 0 obj\n"+objects[i]+"\nendobj\n";offsets.push(offset);chunks.push(o);offset+=Buffer.byteLength(o,"latin1")}const xref=offset;chunks.push("xref\n0 "+(objects.length+1)+"\n0000000000 65535 f \n");for(let i=1;i<=objects.length;i++)chunks.push(String(offsets[i]).padStart(10,"0")+" 00000 n \n");chunks.push("trailer\n<< /Size "+(objects.length+1)+" /Root "+catalog+" 0 R >>\nstartxref\n"+xref+"\n%%EOF");return new Uint8Array(Buffer.from(chunks.join(""),"latin1"));
