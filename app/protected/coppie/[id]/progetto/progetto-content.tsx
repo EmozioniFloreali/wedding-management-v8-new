@@ -84,14 +84,14 @@ async function saveSection(formData: FormData) {
   const coupleId = String(formData.get("couple_id") || "");
   const sectionKey = String(formData.get("section_key") || "");
   if (!projectId || !coupleId || !sectionKey) return;
-  const { error } = await supabase.from("floral_project_sections").upsert({
-    project_id: projectId,
-    section_key: sectionKey,
-    flowers: String(formData.get("flowers") || "").trim() || null,
-    structures: String(formData.get("structures") || "").trim() || null,
-    notes: String(formData.get("notes") || "").trim() || null,
-    other_items: String(formData.get("other_items") || "").trim() || null,
-  }, { onConflict: "project_id,section_key" });
+  const { error } = await supabase.rpc("save_floral_project_section", {
+    p_project_id: projectId,
+    p_section_key: sectionKey,
+    p_flowers: String(formData.get("flowers") || "").trim() || null,
+    p_structures: String(formData.get("structures") || "").trim() || null,
+    p_other_items: String(formData.get("other_items") || "").trim() || null,
+    p_notes: String(formData.get("notes") || "").trim() || null,
+  });
   if (error) throw new Error(error.message);
   revalidatePath(`/protected/coppie/${coupleId}/progetto`);
 }
