@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
 async function requireAdmin() {
@@ -36,6 +37,7 @@ export default async function AccessoSposiPage({ params, searchParams }: {
   params: Promise<{ id: string }>;
   searchParams: Promise<{ saved?: string }>;
 }) {
+  await connection();
   const { id } = await params;
   const { saved } = await searchParams;
   const { supabase } = await requireAdmin();
