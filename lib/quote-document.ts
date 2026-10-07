@@ -76,9 +76,15 @@ function crc32(buf:Buffer){let c=0xffffffff;for(const b of buf){c^=b;for(let i=0
 function u16(n:number){const b=Buffer.alloc(2);b.writeUInt16LE(n,0);return b}
 function u32(n:number){const b=Buffer.alloc(4);b.writeUInt32LE(n>>>0,0);return b}
 function zipStored(files:{name:string;data:Buffer}[]){const local:Buffer[]=[];const central:Buffer[]=[];let offset=0;for(const f of files){const n=Buffer.from(f.name);const h=Buffer.concat([Buffer.from([80,75,3,4]),u16(20),u16(0),u16(0),u16(0),u16(0),u32(crc32(f.data)),u32(f.data.length),u32(f.data.length),u16(n.length),u16(0),n,f.data]);local.push(h);central.push(Buffer.concat([Buffer.from([80,75,1,2]),u16(20),u16(20),u16(0),u16(0),u16(0),u16(0),u32(crc32(f.data)),u32(f.data.length),u32(f.data.length),u16(n.length),u16(0),u16(0),u16(0),u16(0),u32(0),u32(offset),n]));offset+=h.length}const cd=Buffer.concat(central);const end=Buffer.concat([Buffer.from([80,75,5,6]),u16(0),u16(0),u16(files.length),u16(files.length),u32(cd.length),u32(offset),u16(0)]);return Buffer.concat(local.concat([cd,end]))}
-function xmlParagraph(text:string,bold=false,size=22,color=bold?"5D6F35":"222222"){return "<w:p><w:pPr><w:spacing w:after="100"/></w:pPr><w:r><w:rPr>"+(bold?"<w:b/>":"")+"<w:color w:val=""+color+""/><w:sz w:val=""+size+""/></w:rPr><w:t xml:space="preserve">"+escXml(text)+"</w:t></w:r></w:p>"}
-function xmlCell(text:string,bold=false){return "<w:tc><w:tcPr><w:shd w:fill="F5F6F1"/><w:tcMar w:top="100" w:start="120" w:bottom="100" w:end="120"/></w:tcPr>"+xmlParagraph(text,bold,20,bold?"5D6F35":"333333")+"</w:tc>"}
-function xmlTable(rows:string[][]){return "<w:tbl><w:tblPr><w:tblBorders><w:top w:val="single" w:sz="4" w:color="D9DED0"/><w:left w:val="single" w:sz="4" w:color="D9DED0"/><w:bottom w:val="single" w:sz="4" w:color="D9DED0"/><w:right w:val="single" w:sz="4" w:color="D9DED0"/><w:insideH w:val="single" w:sz="4" w:color="D9DED0"/><w:insideV w:val="single" w:sz="4" w:color="D9DED0"/></w:tblBorders></w:tblPr>"+rows.map(r=>"<w:tr>"+r.map((c,i)=>xmlCell(c,i===0)).join("")+"</w:tr>").join("")+"</w:tbl>"}
+function xmlParagraph(text:string,bold=false,size=22,color=bold?"5D6F35":"222222"){
+  return `<w:p><w:pPr><w:spacing w:after="100"/></w:pPr><w:r><w:rPr>${bold?"<w:b/>":""}<w:color w:val="${color}"/><w:sz w:val="${size}"/></w:rPr><w:t xml:space="preserve">${escXml(text)}</w:t></w:r></w:p>`;
+}
+function xmlCell(text:string,bold=false){
+  return `<w:tc><w:tcPr><w:shd w:fill="F5F6F1"/><w:tcMar w:top="100" w:start="120" w:bottom="100" w:end="120"/></w:tcPr>${xmlParagraph(text,bold,20,bold?"5D6F35":"333333")}</w:tc>`;
+}
+function xmlTable(rows:string[][]){
+  return `<w:tbl><w:tblPr><w:tblBorders><w:top w:val="single" w:sz="4" w:color="D9DED0"/><w:left w:val="single" w:sz="4" w:color="D9DED0"/><w:bottom w:val="single" w:sz="4" w:color="D9DED0"/><w:right w:val="single" w:sz="4" w:color="D9DED0"/><w:insideH w:val="single" w:sz="4" w:color="D9DED0"/><w:insideV w:val="single" w:sz="4" w:color="D9DED0"/></w:tblBorders></w:tblPr>${rows.map(r=>"<w:tr>"+r.map((c,i)=>xmlCell(c,i===0)).join("")+"</w:tr>").join("")}</w:tbl>`;
+}
 
 export function buildQuoteDocx(data:QuoteDocumentData){
   const body:string[]=[];
