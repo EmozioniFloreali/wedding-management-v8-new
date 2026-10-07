@@ -367,7 +367,14 @@ export default async function CoupleDetailPage({ params }: PageProps) {
               href={`/protected/coppie/${couple.id}/preventivo`}
               className="mt-5 inline-flex w-full items-center justify-center rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background hover:opacity-90"
             >
-              Apri documenti
+              Apri preventivi
+            </Link>
+
+            <Link
+              href={`/protected/coppie/${couple.id}/contratti`}
+              className="mt-2 inline-flex w-full items-center justify-center rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted"
+            >
+              Apri contratti
             </Link>
           </div>
         </div>
