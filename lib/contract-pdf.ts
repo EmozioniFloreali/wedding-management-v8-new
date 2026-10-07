@@ -51,6 +51,7 @@ function contractLines(data:ContractData){
     data.quote?.discount?"Sconto applicato: "+money(data.quote.discount)+".":"",
     data.quote?.notes||""
   ].filter(Boolean));
+  lines.push("TOTALE CONTRATTO: "+money(data.quote?.total??data.project.total));
   if(data.quote?.items?.length){
     lines.push("Riepilogo delle voci del preventivo:");
     data.quote.items.forEach((it,i)=>lines.push(String(i+1)+". "+it.description+" – "+it.quantity+" "+it.unit));
