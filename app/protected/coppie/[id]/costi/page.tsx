@@ -249,6 +249,37 @@ export default async function CostiMatrimonioPage({
           </div>
         </div>
 
+        <section className="mb-6 rounded-2xl border bg-white p-6 shadow-sm">
+          <h2 className="text-xl font-bold">Riepilogo per categoria</h2>
+          <div className="mt-4 overflow-x-auto">
+            <table className="w-full min-w-[620px] text-sm">
+              <thead>
+                <tr className="border-b text-left text-slate-500">
+                  <th className="px-3 py-3 font-semibold">Categoria</th>
+                  <th className="px-3 py-3 text-right font-semibold">Previsto</th>
+                  <th className="px-3 py-3 text-right font-semibold">Effettivo</th>
+                  <th className="px-3 py-3 text-right font-semibold">Scostamento</th>
+                </tr>
+              </thead>
+              <tbody>
+                {CATEGORIES.map(([value, label]) => {
+                  const categoryRows = rows.filter((row) => row.category === value);
+                  const categoryEstimated = categoryRows.reduce((sum, row) => sum + Number(row.estimated_amount || 0), 0);
+                  const categoryActual = categoryRows.reduce((sum, row) => sum + Number(row.actual_amount || 0), 0);
+                  return (
+                    <tr key={value} className="border-b last:border-0">
+                      <td className="px-3 py-3 font-medium">{label}</td>
+                      <td className="px-3 py-3 text-right">{euro(categoryEstimated)}</td>
+                      <td className="px-3 py-3 text-right">{euro(categoryActual)}</td>
+                      <td className="px-3 py-3 text-right">{euro(categoryActual - categoryEstimated)}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
         <section className="rounded-2xl border bg-white p-6 shadow-sm">
           <h2 className="text-xl font-bold">Nuova voce di costo</h2>
           <p className="mt-1 text-sm text-slate-500">
