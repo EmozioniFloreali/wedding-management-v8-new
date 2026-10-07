@@ -19,7 +19,8 @@ function winAnsi(text:string){
   let safe=""; for(const ch of out){const n=ch.charCodeAt(0); if(ch==="\n" || (n>=32 && n<=126)) safe+=ch;} return safe;
 }
 function pdfEscape(text:string){return winAnsi(text).split("\\").join("\\\\").split("(").join("\\(").split(")").join("\\)")}
-function wrap(text:string,max=92){const words=text.split(/\s+/).filter(Boolean);const lines:string[]=[];let line="";for(const w of words){const next=line?line+" "+w:w;if(next.length<=max)line=next;else{if(line)lines.push(line);line=w}}if(line)lines.push(line);return lines.length?lines:[""]}\nfunction money(v:number|null|undefined){return new Intl.NumberFormat("it-IT",{style:"currency",currency:"EUR",minimumFractionDigits:2}).format(Number(v||0))}
+function wrap(text:string,max=92){const words=text.split(/\s+/).filter(Boolean);const lines:string[]=[];let line="";for(const w of words){const next=line?line+" "+w:w;if(next.length<=max)line=next;else{if(line)lines.push(line);line=w}}if(line)lines.push(line);return lines.length?lines:[""]}
+function money(v:number|null|undefined){return new Intl.NumberFormat("it-IT",{style:"currency",currency:"EUR",minimumFractionDigits:2}).format(Number(v||0))}
 function dateIt(v?:string|null){if(!v)return "";const d=new Date(v.includes("T")?v:v+"T12:00:00");if(Number.isNaN(d.getTime()))return v;return new Intl.DateTimeFormat("it-IT",{dateStyle:"long",timeZone:"Europe/Rome"}).format(d)}
 function addSection(lines:string[],title:string,body:string[]){lines.push(title);for(const p of body)for(const l of wrap(p))lines.push(l);lines.push("")}
 
