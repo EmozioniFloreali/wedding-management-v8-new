@@ -62,7 +62,9 @@ export default async function ProtectedDashboardPage() {
       .maybeSingle();
 
     if (membership?.couple_id) {
-      redirect(`/protected/area-sposi/${membership.couple_id}`);
+      const { data: coupleAccess } = await supabase.from("couples").select("portal_enabled").eq("id", membership.couple_id).maybeSingle();
+      if (coupleAccess?.portal_enabled) redirect(`/protected/area-sposi/${membership.couple_id}`);
+      return <main className="min-h-screen bg-slate-50 p-10"><div className="mx-auto max-w-xl rounded-2xl border bg-white p-8 text-center shadow-sm"><div className="text-4xl">🔒</div><h1 className="mt-4 text-2xl font-bold text-slate-900">Area Sposi non disponibile</h1><p className="mt-3 text-slate-600">L accesso all Area Sposi è attualmente disattivato. La gestione del matrimonio rimane esclusivamente a Emozioni Floreali.</p></div></main>;
     }
 
     redirect("/auth/login?error=area_sposi_non_collegata");
