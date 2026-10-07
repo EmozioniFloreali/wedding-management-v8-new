@@ -89,7 +89,6 @@ async function saveSection(formData: FormData) {
     section_key: sectionKey,
     flowers: String(formData.get("flowers") || "").trim() || null,
     structures: String(formData.get("structures") || "").trim() || null,
-    other_items: String(formData.get("other_items") || "").trim() || null,
     notes: String(formData.get("notes") || "").trim() || null,
     updated_at: new Date().toISOString(),
   }, { onConflict: "project_id,section_key" });
@@ -218,7 +217,7 @@ export async function ProgettoFlorealeContent({ params, searchParams }: { params
   if (!project) redirect(`/protected/coppie/${coupleId}`);
 
   const [{ data: sections }, { data: items }] = await Promise.all([
-    supabase.from("floral_project_sections").select("id,section_key,flowers,structures,notes,other_items")
+    supabase.from("floral_project_sections").select("id,section_key,flowers,structures,notes")
       .eq("project_id", project.id),
     supabase.from("floral_project_items").select("id,category,service_key,name,description,quantity,unit,include_in_quote,include_in_contract")
       .eq("project_id", project.id).order("sort_order", { ascending: true }),
@@ -256,9 +255,6 @@ export async function ProgettoFlorealeContent({ params, searchParams }: { params
         </label>
         <label className="text-sm font-semibold text-slate-700">Strutture da utilizzare o scelte (inserimento libero)
           <textarea name="structures" defaultValue={section?.structures || ""} rows={3} placeholder="Es. Candelabri; vasi; supporti..." className="mt-2 w-full rounded-xl border px-4 py-3"/>
-        </label>
-        <label className="text-sm font-semibold text-slate-700">Altri elementi / richieste particolari
-          <textarea name="other_items" defaultValue={section?.other_items || ""} rows={3} placeholder="Elementi non compresi nelle scelte preimpostate..." className="mt-2 w-full rounded-xl border px-4 py-3"/>
         </label>
         <label className="text-sm font-semibold text-slate-700">Note
           <textarea name="notes" defaultValue={section?.notes || ""} rows={2} className="mt-2 w-full rounded-xl border px-4 py-3"/>
