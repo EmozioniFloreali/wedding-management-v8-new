@@ -246,10 +246,10 @@ export default async function PreventivoPage({ params }: { params: Promise<{ id:
               <Link href={`/protected/coppie/${coupleId}`}>{coupleName}</Link><span>/</span><span>Preventivo</span>
             </div>
             <h1 className="text-3xl font-bold text-slate-900">Preventivo</h1>
-            <p className="mt-1 text-slate-600">Le voci derivano esclusivamente da ciò che è stato confermato nel Progetto Floreale.</p>
+            <p className="mt-1 text-slate-600">Le voci derivano esclusivamente da ciò che è stato selezionato nel Progetto Floreale.</p>
           </div>
           <div className="flex flex-wrap gap-2">
-            {quote?.status === "confermato" ? <div className="rounded-xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">✓ Preventivo confermato: il contratto viene generato automaticamente.</div> : <div className="rounded-xl bg-slate-100 px-4 py-3 text-sm text-slate-600">Il contratto sarà generato solo dopo la conferma della coppia.</div>}
+            {quote?.status === "confermato" ? <div className="rounded-xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">✓ Preventivo confermato. Il contratto era già stato generato alla presentazione.</div> : <div className="rounded-xl bg-slate-100 px-4 py-3 text-sm text-slate-600">Il contratto viene generato automaticamente quando il preventivo viene presentato. La conferma della coppia registra la decisione degli sposi.</div>}
             <Link href={`/protected/coppie/${coupleId}/progetto`} className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold">Progetto floreale</Link>
           </div>
         </div>
@@ -274,9 +274,9 @@ export default async function PreventivoPage({ params }: { params: Promise<{ id:
         </section>
 
         <section className="mb-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-xl font-bold">Voci confermate</h2>
-          <p className="mt-1 text-sm text-slate-500">Solo le voci confermate dalla sposa vengono riportate qui. Le singole voci non hanno un prezzo.</p>
-          {!quote ? <p className="mt-4 text-sm text-slate-500">Salva il preventivo per generare automaticamente le voci confermate.</p> : (
+          <h2 className="text-xl font-bold">Voci del preventivo</h2>
+          <p className="mt-1 text-sm text-slate-500">Qui vengono riportate le voci selezionate nel Progetto Floreale. Le singole voci non hanno un prezzo.</p>
+          {!quote ? <p className="mt-4 text-sm text-slate-500">Salva il preventivo per riportare automaticamente le voci selezionate dal progetto.</p> : (
             <div className="mt-4 space-y-2">
               {(items || []).map(item => (
                 <div key={item.id} className="flex items-center justify-between rounded-xl border bg-slate-50 p-4">
