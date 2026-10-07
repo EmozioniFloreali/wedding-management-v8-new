@@ -11,8 +11,51 @@ function dateIt(v?:string|null){if(!v)return "";const d=new Date(v.includes("T")
 function wrap(t:string,max:number){const out:string[]=[];let line="";for(const w of t.split(/\s+/).filter(Boolean)){const n=line?line+" "+w:w;if(n.length<=max)line=n;else{if(line)out.push(line);line=w}}if(line)out.push(line);return out.length?out:[""]}
 
 function pdfEscape(s:string){return s.replace(/\\/g,"\\\\").replace(/\(/g,"\\(").replace(/\)/g,"\\)")}
-function buildPdf(data:QuoteDocumentData){const lines:string[]=[];const add=(s:string)=>wrap(s,92).forEach(x=>lines.push(x));lines.push("EMOZIONI FLOREALI","di Giusy Surace","PREVENTIVO PROFESSIONALE","");add(data.quote.title||"Preventivo Progetto Floreale");add("Versione "+data.quote.version_number+" - Stato: "+data.quote.status);lines.push("","DATI DEGLI SPOSI");add(data.couple.first+" & "+data.couple.second);if(data.couple.email)add("Email: "+data.couple.email);if(data.couple.phone)add("Telefono: "+data.couple.phone);lines.push("","DATI DEL MATRIMONIO");if(data.wedding.date)add("Data: "+dateIt(data.wedding.date));if(data.wedding.time)add("Ora: "+data.wedding.time.slice(0,5));if(data.wedding.venue)add("Location: "+data.wedding.venue);if(data.wedding.church)add("Cerimonia: "+data.wedding.church);if(data.wedding.reception)add("Ricevimento: "+data.wedding.reception);lines.push("","PROGETTO FLOREALE");add(data.project.name);add("Le singole composizioni non hanno un prezzo autonomo: il preventivo esprime un unico corrispettivo complessivo.");lines.push("","VOCI COMPRESE");data.items.forEach((it,i)=>{add((i+1)+". "+it.description+" - "+it.quantity+" "+it.unit+(it.area?" - "+it.area:""));if(it.notes)add("Note: "+it.notes)});lines.push("","RIEPILOGO ECONOMICO");add("TOTALE COMPLESSIVO: "+money(data.quote.total_amount));add("Acconto: "+money(data.quote.deposit_amount));add("Saldo: "+money(Math.max(0,Number(data.quote.total_amount||0)-Number(data.quote.deposit_amount||0))));add(data.quote.vat_included?"IVA inclusa":"IVA esclusa");lines.push("","VALIDITA E NOTE");add("Validita del preventivo: "+(data.quote.validity_days??30)+" giorni.");if(data.quote.notes)add(data.quote.notes);lines.push("","Emozioni Floreali di Giusy Surace - Wedding & Floral Design");
-  const objects:string[]=[];function obj(s:string){objects.push(s);return objects.length}const font=obj("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>");const pages=obj("<< /Type /Pages /Kids [] /Count 0 >>");const pageIds:number[]=[];for(let start=0;start<lines.length;start+=46){const pg=lines.slice(start,start+46);let stream="BT\n/F1 10 Tf\n50 800 Td\n14 TL\n";pg.forEach((l,i)=>{stream+=(i?"T* ":"")+"("+pdfEscape(l)+") Tj\n"});stream+="ET\n";const sid=obj("<< /Length "+Buffer.byteLength(stream,"latin1")+" >>\nstream\n"+stream+"endstream");pageIds.push(obj("<< /Type /Page /Parent "+pages+" 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 "+font+" 0 R >> >> /Contents "+sid+" 0 R >>"))}objects[pages-1]="<< /Type /Pages /Kids ["+pageIds.map(x=>x+" 0 R").join(" ")+"] /Count "+pageIds.length+" >>";const catalog=obj("<< /Type /Catalog /Pages "+pages+" 0 R >>");const chunks=["%PDF-1.4\n"];const offsets=[0];let offset=Buffer.byteLength(chunks[0],"latin1");for(let i=0;i<objects.length;i++){const o=(i+1)+" 0 obj\n"+objects[i]+"\nendobj\n";offsets.push(offset);chunks.push(o);offset+=Buffer.byteLength(o,"latin1")}const xref=offset;chunks.push("xref\n0 "+(objects.length+1)+"\n0000000000 65535 f \n");for(let i=1;i<=objects.length;i++)chunks.push(String(offsets[i]).padStart(10,"0")+" 00000 n \n");chunks.push("trailer\n<< /Size "+(objects.length+1)+" /Root "+catalog+" 0 R >>\nstartxref\n"+xref+"\n%%EOF");return Buffer.from(chunks.join(""),"latin1")}
+function buildPdf(data:QuoteDocumentData){
+  const lines:string[]=[];
+  const add=(s:string)=>wrap(s,88).forEach(x=>lines.push(x));
+  lines.push("EMOZIONI FLOREALI","di Giusy Surace","WEDDING & FLORAL DESIGN","");
+  add("PREVENTIVO PROFESSIONALE");
+  add((data.quote.title||"Preventivo Progetto Floreale")+" - Versione "+data.quote.version_number);
+  add("Stato: "+data.quote.status);
+  lines.push("","DATI DEGLI SPOSI"); add(data.couple.first+" & "+data.couple.second);
+  if(data.couple.email)add("Email: "+data.couple.email); if(data.couple.phone)add("Telefono: "+data.couple.phone);
+  lines.push("","DATI DEL MATRIMONIO");
+  if(data.wedding.date)add("Data: "+dateIt(data.wedding.date)); if(data.wedding.time)add("Ora: "+data.wedding.time.slice(0,5));
+  if(data.wedding.venue)add("Location: "+data.wedding.venue); if(data.wedding.church)add("Cerimonia: "+data.wedding.church); if(data.wedding.reception)add("Ricevimento: "+data.wedding.reception);
+  lines.push("","PROGETTO FLOREALE"); add(data.project.name);
+  add("Le singole composizioni non hanno un prezzo autonomo: il preventivo esprime un unico corrispettivo complessivo.");
+  lines.push("","VOCI COMPRESE");
+  data.items.forEach((it,i)=>{add((i+1)+". "+it.description+" - "+it.quantity+" "+it.unit+(it.area?" - "+it.area:"")); if(it.notes)add("Note: "+it.notes)});
+  lines.push("","RIEPILOGO ECONOMICO"); add("TOTALE COMPLESSIVO: EUR "+Number(data.quote.total_amount||0).toLocaleString("it-IT",{minimumFractionDigits:2,maximumFractionDigits:2}));
+  add("Acconto: EUR "+Number(data.quote.deposit_amount||0).toLocaleString("it-IT",{minimumFractionDigits:2,maximumFractionDigits:2}));
+  add("Saldo: EUR "+Math.max(0,Number(data.quote.total_amount||0)-Number(data.quote.deposit_amount||0)).toLocaleString("it-IT",{minimumFractionDigits:2,maximumFractionDigits:2}));
+  add(data.quote.vat_included?"IVA inclusa":"IVA esclusa");
+  lines.push("","VALIDITA E NOTE"); add("Validita del preventivo: "+(data.quote.validity_days??30)+" giorni."); if(data.quote.notes)add(data.quote.notes);
+  lines.push("","Emozioni Floreali di Giusy Surace - Wedding & Floral Design");
+
+  const objects:string[]=[];
+  function obj(s:string){objects.push(s);return objects.length}
+  const font=obj("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>");
+  const bold=obj("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>");
+  const pages=obj("<< /Type /Pages /Kids [] /Count 0 >>");
+  const pageIds:number[]=[];
+  for(let start=0;start<lines.length;start+=42){
+    const pg=lines.slice(start,start+42); let stream="BT\n";
+    pg.forEach((l,i)=>{const isHead=/^(EMOZIONI FLOREALI|WEDDING|PREVENTIVO|DATI |PROGETTO |VOCI |RIEPILOGO |VALIDITA )/.test(l); stream+=(isHead?"/F2 11 Tf\n":"/F1 9 Tf\n")+"50 "+(790-i*17)+" Td\n("+pdfEscape(l)+") Tj\n";});
+    stream+="ET\n";
+    const sid=obj("<< /Length "+Buffer.byteLength(stream,"latin1")+" >>\nstream\n"+stream+"endstream");
+    pageIds.push(obj("<< /Type /Page /Parent "+pages+" 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 "+font+" 0 R /F2 "+bold+" 0 R >> >> /Contents "+sid+" 0 R >>"));
+  }
+  objects[pages-1]="<< /Type /Pages /Kids ["+pageIds.map(x=>x+" 0 R").join(" ")+"] /Count "+pageIds.length+" >>";
+  const catalog=obj("<< /Type /Catalog /Pages "+pages+" 0 R >>");
+  const chunks=["%PDF-1.4\n"]; const offsets=[0]; let offset=Buffer.byteLength(chunks[0],"latin1");
+  for(let i=0;i<objects.length;i++){const o=(i+1)+" 0 obj\n"+objects[i]+"\nendobj\n"; offsets.push(offset); chunks.push(o); offset+=Buffer.byteLength(o,"latin1")}
+  const xref=offset; chunks.push("xref\n0 "+(objects.length+1)+"\n0000000000 65535 f \n");
+  for(let i=1;i<=objects.length;i++)chunks.push(String(offsets[i]).padStart(10,"0")+" 00000 n \n");
+  chunks.push("trailer\n<< /Size "+(objects.length+1)+" /Root "+catalog+" 0 R >>\nstartxref\n"+xref+"\n%%EOF");
+  return Buffer.from(chunks.join(""),"latin1")
+}
 
 function escXml(s:string){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&apos;")}
 function crc32(buf:Buffer){let c=0xffffffff;for(const b of buf){c^=b;for(let i=0;i<8;i++)c=(c>>>1)^((c&1)?0xedb88320:0)}return (c^0xffffffff)>>>0}
