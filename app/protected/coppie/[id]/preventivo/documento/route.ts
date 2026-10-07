@@ -4,7 +4,6 @@ import { createClient } from "@/lib/supabase/server";
 import { buildQuoteDocx, buildQuotePdfAsync } from "@/lib/quote-document";
 
 export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
 
 function safeName(value: string) {
   return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9_-]+/g, "_").replace(/^_+|_+$/g, "");
