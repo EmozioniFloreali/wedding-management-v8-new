@@ -13,7 +13,7 @@ function wrap(t:string,max:number){const out:string[]=[];let line="";for(const w
 function pdfEscape(s:string){return s.replace(/\\/g,"\\\\").replace(/\(/g,"\\(").replace(/\)/g,"\\)")}
 function buildPdf(data:QuoteDocumentData){
   const lines:string[]=[];
-  const add=(s:string)=>wrap(s,88).forEach(x=>lines.push(x));
+  const add=(s:string)=>wrap(s,86).forEach(x=>lines.push(x));
   lines.push("EMOZIONI FLOREALI","di Giusy Surace","WEDDING & FLORAL DESIGN","");
   add("PREVENTIVO PROFESSIONALE");
   add((data.quote.title||"Preventivo Progetto Floreale")+" - Versione "+data.quote.version_number);
@@ -27,22 +27,32 @@ function buildPdf(data:QuoteDocumentData){
   add("Le singole composizioni non hanno un prezzo autonomo: il preventivo esprime un unico corrispettivo complessivo.");
   lines.push("","VOCI COMPRESE");
   data.items.forEach((it,i)=>{add((i+1)+". "+it.description+" - "+it.quantity+" "+it.unit+(it.area?" - "+it.area:"")); if(it.notes)add("Note: "+it.notes)});
-  lines.push("","RIEPILOGO ECONOMICO"); add("TOTALE COMPLESSIVO: EUR "+Number(data.quote.total_amount||0).toLocaleString("it-IT",{minimumFractionDigits:2,maximumFractionDigits:2}));
+  lines.push("","RIEPILOGO ECONOMICO");
+  add("TOTALE COMPLESSIVO: EUR "+Number(data.quote.total_amount||0).toLocaleString("it-IT",{minimumFractionDigits:2,maximumFractionDigits:2}));
   add("Acconto: EUR "+Number(data.quote.deposit_amount||0).toLocaleString("it-IT",{minimumFractionDigits:2,maximumFractionDigits:2}));
   add("Saldo: EUR "+Math.max(0,Number(data.quote.total_amount||0)-Number(data.quote.deposit_amount||0)).toLocaleString("it-IT",{minimumFractionDigits:2,maximumFractionDigits:2}));
   add(data.quote.vat_included?"IVA inclusa":"IVA esclusa");
   lines.push("","VALIDITA E NOTE"); add("Validita del preventivo: "+(data.quote.validity_days??30)+" giorni."); if(data.quote.notes)add(data.quote.notes);
   lines.push("","Emozioni Floreali di Giusy Surace - Wedding & Floral Design");
 
-  const objects:string[]=[];
-  function obj(s:string){objects.push(s);return objects.length}
+  const objects:string[]=[]; function obj(s:string){objects.push(s);return objects.length}
   const font=obj("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>");
   const bold=obj("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>");
-  const pages=obj("<< /Type /Pages /Kids [] /Count 0 >>");
-  const pageIds:number[]=[];
-  for(let start=0;start<lines.length;start+=42){
-    const pg=lines.slice(start,start+42); let stream="BT\n/F1 9 Tf\n50 790 Td\n";
-    pg.forEach((l,i)=>{const isHead=/^(EMOZIONI FLOREALI|WEDDING|PREVENTIVO|DATI |PROGETTO |VOCI |RIEPILOGO |VALIDITA )/.test(l); stream+=(isHead?"/F2 11 Tf\n":"/F1 9 Tf\n")+"("+pdfEscape(l)+") Tj\n0 -17 Td\n";});
+  const pages=obj("<< /Type /Pages /Kids [] /Count 0 >>"); const pageIds:number[]=[];
+  for(let startLine=0;startLine<lines.length;startLine+=38){
+    const pg=lines.slice(startLine,startLine+38); let stream="";
+    stream+="q 0.36 0.44 0.21 rg 50 805 495 4 re f Q\n";
+    stream+="q 0.82 0.05 0.28 rg 50 70 495 1 re f Q\n";
+    stream+="BT\n";
+    pg.forEach((l,i)=>{
+      const isMain=l==="EMOZIONI FLOREALI"||l==="WEDDING & FLORAL DESIGN";
+      const isHead=/^(PREVENTIVO PROFESSIONALE|DATI |PROGETTO |VOCI |RIEPILOGO |VALIDITA )/.test(l);
+      const y=780-i*19;
+      if(isMain) stream+="0.36 0.44 0.21 rg\n";
+      else if(isHead) stream+="0.82 0.05 0.28 rg\n";
+      else stream+="0.13 0.13 0.13 rg\n";
+      stream+=(isMain||isHead?"/F2 11 Tf\n":"/F1 9.5 Tf\n")+"50 "+y+" Td ("+pdfEscape(l)+") Tj -50 -"+y+" Td\n";
+    });
     stream+="ET\n";
     const sid=obj("<< /Length "+Buffer.byteLength(stream,"latin1")+" >>\nstream\n"+stream+"endstream");
     pageIds.push(obj("<< /Type /Page /Parent "+pages+" 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 "+font+" 0 R /F2 "+bold+" 0 R >> >> /Contents "+sid+" 0 R >>"));
@@ -50,13 +60,12 @@ function buildPdf(data:QuoteDocumentData){
   objects[pages-1]="<< /Type /Pages /Kids ["+pageIds.map(x=>x+" 0 R").join(" ")+"] /Count "+pageIds.length+" >>";
   const catalog=obj("<< /Type /Catalog /Pages "+pages+" 0 R >>");
   const chunks=["%PDF-1.4\n"]; const offsets=[0]; let offset=Buffer.byteLength(chunks[0],"latin1");
-  for(let i=0;i<objects.length;i++){const o=(i+1)+" 0 obj\n"+objects[i]+"\nendobj\n"; offsets.push(offset); chunks.push(o); offset+=Buffer.byteLength(o,"latin1")}
-  const xref=offset; chunks.push("xref\n0 "+(objects.length+1)+"\n0000000000 65535 f \n");
+  for(let i=0;i<objects.length;i++){const o=(i+1)+" 0 obj\n"+objects[i]+"\nendobj\n";offsets.push(offset);chunks.push(o);offset+=Buffer.byteLength(o,"latin1")}
+  const xref=offset;chunks.push("xref\n0 "+(objects.length+1)+"\n0000000000 65535 f \n");
   for(let i=1;i<=objects.length;i++)chunks.push(String(offsets[i]).padStart(10,"0")+" 00000 n \n");
   chunks.push("trailer\n<< /Size "+(objects.length+1)+" /Root "+catalog+" 0 R >>\nstartxref\n"+xref+"\n%%EOF");
   return Buffer.from(chunks.join(""),"latin1")
 }
-
 function escXml(s:string){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&apos;")}
 function crc32(buf:Buffer){let c=0xffffffff;for(const b of buf){c^=b;for(let i=0;i<8;i++)c=(c>>>1)^((c&1)?0xedb88320:0)}return (c^0xffffffff)>>>0}
 function u16(n:number){const b=Buffer.alloc(2);b.writeUInt16LE(n,0);return b}
