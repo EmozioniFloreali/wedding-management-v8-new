@@ -2,16 +2,15 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { generaContratto } from "@/app/protected/coppie/[id]/contratto/actions";
 
 export const instant = false;
 
 const STATUS = [
-  ["draft", "Bozza"],
-  ["sent", "Inviato"],
-  ["accepted", "Accettato"],
-  ["rejected", "Rifiutato"],
-  ["expired", "Scaduto"],
+  ["bozza", "Bozza"],
+  ["in_attesa_conferma", "In attesa di conferma"],
+  ["presentato", "Presentato"],
+  ["confermato", "Confermato"],
+  ["rifiutato_da_modificare", "Da modificare"],
 ] as const;
 
 const CATEGORIES = [
@@ -47,7 +46,7 @@ async function getAdmin() {
   return { supabase, user };
 }
 
-async function syncConfirmedItemsToQuote(supabase: any, coupleId: string, projectId: string, quoteId: string) {
+async function syncProjectSelectionsToQuote(supabase: any, projectId: string, quoteId: string) {
   const { data: selectedItems } = await supabase.from("floral_project_items")
     .select("id,category,name,description,quantity,unit,notes,sort_order,include_in_quote")
     .eq("project_id", projectId)
@@ -57,15 +56,16 @@ async function syncConfirmedItemsToQuote(supabase: any, coupleId: string, projec
   await supabase.from("quote_items")
     .delete()
     .eq("quote_id", quoteId)
-    .like("notes", "floral_project_item_id:%");
+    .not("floral_project_item_id", "is", null);
 
   const rows = (selectedItems || []).map((item: any, index: number) => ({
     quote_id: quoteId,
+    floral_project_item_id: item.id,
     area: item.category || null,
     description: item.description ? `${item.name} — ${item.description}` : item.name,
     quantity: item.quantity ?? 1,
     unit: item.unit || "pz",
-    notes: `floral_project_item_id:${item.id}${item.notes ? ` — ${item.notes}` : ""}`,
+    notes: item.notes || null,
     sort_order: index + 1,
   }));
 
@@ -82,7 +82,7 @@ async function salvaPreventivo(formData: FormData) {
   const projectId = value(formData, "project_id");
   const quoteId = value(formData, "quote_id");
   const weddingId = value(formData, "wedding_id") || null;
-  const status = value(formData, "status") || "draft";
+  const status = value(formData, "status") || "bozza";
   const title = value(formData, "title") || "Preventivo Progetto Floreale";
   const validityDays = Math.max(0, Math.round(amount(formData, "validity_days") || 30));
   const notes = value(formData, "notes");
@@ -91,6 +91,11 @@ async function salvaPreventivo(formData: FormData) {
   const vatIncluded = value(formData, "vat_included") === "on";
 
   if (!coupleId || !projectId) return;
+
+  if (quoteId) {
+    const { data: currentQuote } = await supabase.from("quotes").select("status").eq("id", quoteId).maybeSingle();
+    if (currentQuote?.status === "confermato") throw new Error("Il preventivo confermato non è modificabile. Crea una nuova versione dal Progetto Floreale.");
+  }
 
   const payload = {
     couple_id: coupleId,
@@ -108,11 +113,11 @@ async function salvaPreventivo(formData: FormData) {
 
   const { data: quote, error } = quoteId
     ? await supabase.from("quotes").update(payload).eq("id", quoteId).select("id").single()
-    : await supabase.from("quotes").insert(payload).select("id").single();
+    : await supabase.from("quotes").insert({ ...payload, version_number: 1 }).select("id").single();
 
   if (error || !quote) throw new Error(error?.message || "Impossibile salvare il preventivo");
 
-  await syncConfirmedItemsToQuote(supabase, coupleId, projectId, quote.id);
+  await syncProjectSelectionsToQuote(supabase, projectId, quote.id);
   revalidatePath(`/protected/coppie/${coupleId}/preventivo`);
   revalidatePath(`/protected/coppie/${coupleId}/progetto`);
 }
@@ -238,10 +243,7 @@ export default async function PreventivoPage({ params }: { params: Promise<{ id:
             <p className="mt-1 text-slate-600">Le voci derivano esclusivamente da ciò che è stato confermato nel Progetto Floreale.</p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <form action={generaContratto}>
-              <input type="hidden" name="couple_id" value={coupleId}/>
-              <button type="submit" className="rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white">📄 Crea contratto d'opera</button>
-            </form>
+            {quote?.status === "confermato" ? <div className="rounded-xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">✓ Preventivo confermato: il contratto viene generato automaticamente.</div> : <div className="rounded-xl bg-slate-100 px-4 py-3 text-sm text-slate-600">Il contratto sarà generato solo dopo la conferma della coppia.</div>}
             <Link href={`/protected/coppie/${coupleId}/progetto`} className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold">Progetto floreale</Link>
           </div>
         </div>
@@ -255,7 +257,7 @@ export default async function PreventivoPage({ params }: { params: Promise<{ id:
             <input type="hidden" name="quote_id" value={quote?.id || ""}/>
             <input type="hidden" name="wedding_id" value={wedding?.id || ""}/>
             <div><label className="mb-1 block text-sm font-semibold">Titolo</label><input name="title" defaultValue={quote?.title || "Preventivo Progetto Floreale"} className="w-full rounded-xl border px-3 py-3"/></div>
-            <div><label className="mb-1 block text-sm font-semibold">Stato</label><select name="status" defaultValue={quote?.status || "draft"} className="w-full rounded-xl border px-3 py-3">{STATUS.map(([v,l])=><option key={v} value={v}>{l}</option>)}</select></div>
+            <div><label className="mb-1 block text-sm font-semibold">Stato</label><select name="status" defaultValue={quote?.status || "bozza"} className="w-full rounded-xl border px-3 py-3">{STATUS.map(([v,l])=><option key={v} value={v}>{l}</option>)}</select></div>
             <div><label className="mb-1 block text-sm font-semibold">Validità (giorni)</label><input name="validity_days" type="number" min="0" defaultValue={quote?.validity_days ?? 30} className="w-full rounded-xl border px-3 py-3"/></div>
             <div><label className="mb-1 block text-sm font-semibold">Totale progetto €</label><input name="total_amount" defaultValue={quote?.total_amount ?? project.total_amount ?? ""} className="w-full rounded-xl border px-3 py-3"/></div>
             <div><label className="mb-1 block text-sm font-semibold">Acconto €</label><input name="deposit_amount" defaultValue={quote?.deposit_amount ?? 0} className="w-full rounded-xl border px-3 py-3"/></div>
