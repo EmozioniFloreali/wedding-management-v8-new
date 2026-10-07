@@ -9,7 +9,7 @@ export type QuoteDocumentData = {
 function money(v:number|null|undefined){return new Intl.NumberFormat("it-IT",{style:"currency",currency:"EUR",minimumFractionDigits:2}).format(Number(v||0))}
 function dateIt(v?:string|null){if(!v)return "";const d=new Date(v.includes("T")?v:v+"T12:00:00");if(Number.isNaN(d.getTime()))return v;return new Intl.DateTimeFormat("it-IT",{dateStyle:"long",timeZone:"Europe/Rome"}).format(d)}
 function wrap(t:string,max:number){const out:string[]=[];let line="";for(const w of t.split(/\s+/).filter(Boolean)){const n=line?line+" "+w:w;if(n.length<=max)line=n;else{if(line)out.push(line);line=w}}if(line)out.push(line);return out.length?out:[""]}
-function pdfEscape(s:string){return s.replace(/\\/g,"\\\\").replace(/\(/g,"\\(").replace(/\)/g,"\\)")}
+function pdfEscape(s:string){const m:Record<string,string>={"€":"\\x80","–":"\\x96","—":"\\x97","“":"\\x93","”":"\\x94","’":"\\x92","…":"\\x85"};let o="";for(const ch of s)o+=m[ch]??ch;return o.replace(/\\/g,"\\\\").replace(/\(/g,"\\(").replace(/\)/g,"\\)")}
 
 function buildPdf(data:QuoteDocumentData){
   const lines:string[]=[];
