@@ -44,10 +44,10 @@ export default async function AreaSposiPage({ params }: { params: Promise<{ id: 
   let quotePaid = 0;
 
   if (quote) {
-    const { data: quoteItems } = await supabase.from("quote_items").select("quantity,unit_price,discount_percent").eq("quote_id", quote.id);
+    const { data: quoteItems } = await supabase.from("quote_items").select("quantity").eq("quote_id", quote.id);
     const { data: quotePayments } = await supabase.from("quote_payments").select("amount").eq("quote_id", quote.id);
     if (quoteItems && quoteItems.length) {
-      quoteTotal = quoteItems.reduce((sum,item) => { const base=Number(item.quantity||0)*Number(item.unit_price||0); const discount=base*(Number(item.discount_percent||0)/100); return sum+Math.max(0,base-discount); },0);
+      quoteTotal = Number(quote?.total_amount || 0);
     }
     quotePaid = (quotePayments || []).reduce((sum,payment) => sum + Number(payment.amount || 0), 0);
   }
