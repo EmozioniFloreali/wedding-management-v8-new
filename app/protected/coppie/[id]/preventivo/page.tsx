@@ -251,6 +251,23 @@ export default async function PreventivoPage({ params }: { params: Promise<{ id:
           <div className="flex flex-wrap gap-2">
             {quote?.status === "confermato" ? <div className="rounded-xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">✓ Preventivo confermato. Il contratto era già stato generato alla presentazione.</div> : <div className="rounded-xl bg-slate-100 px-4 py-3 text-sm text-slate-600">Il contratto viene generato automaticamente quando il preventivo viene presentato. La conferma della coppia registra la decisione degli sposi.</div>}
             <Link href={`/protected/coppie/${coupleId}/progetto`} className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold">Progetto floreale</Link>
+            {quote && (
+              <>
+                <Link
+                  href={`/protected/coppie/${coupleId}/preventivo/documento?format=pdf&quote_id=${quote.id}`}
+                  target="_blank"
+                  className="rounded-xl bg-emerald-700 px-4 py-3 text-sm font-semibold text-white"
+                >
+                  PDF / Stampa
+                </Link>
+                <Link
+                  href={`/protected/coppie/${coupleId}/preventivo/documento?format=docx&quote_id=${quote.id}`}
+                  className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold"
+                >
+                  Scarica DOCX
+                </Link>
+              </>
+            )}
           </div>
         </div>
 
