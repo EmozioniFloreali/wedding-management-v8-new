@@ -67,7 +67,7 @@ function contractLines(data:ContractData){
   return lines;
 }
 
-(data:ContractData):Uint8Array{
+export function buildContractPdf(data:ContractData):Uint8Array{
   const lines=contractLines(data);const objects:string[]=[];const add=(s:string)=>{objects.push(s);return objects.length};
   const font=add("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>");
   const bold=add("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>");
