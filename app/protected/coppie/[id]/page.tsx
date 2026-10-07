@@ -277,6 +277,30 @@ export default async function CoupleDetailPage({ params }: PageProps) {
             </Link>
           </div>
 
+          {/* COSTI E RENDICONTO INTERNO */}
+          <div className="rounded-xl border border-amber-200 bg-amber-50 p-6">
+            <div className="text-2xl">💶</div>
+
+            <h3 className="mt-4 font-semibold">
+              Costi e rendiconto
+            </h3>
+
+            <p className="mt-2 text-sm text-muted-foreground">
+              Spese interne della cerimonia, costi previsti ed effettivi e margine.
+            </p>
+
+            <Link
+              href={`/protected/coppie/${couple.id}/costi`}
+              className="mt-5 inline-flex w-full items-center justify-center rounded-md bg-amber-700 px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+            >
+              Apri rendiconto
+            </Link>
+
+            <p className="mt-3 text-xs font-medium text-amber-900">
+              🔒 Solo area professionale
+            </p>
+          </div>
+
           {/* CALENDARIO */}
           <div className="rounded-xl border bg-background p-6">
             <CalendarDays className="h-7 w-7" />
