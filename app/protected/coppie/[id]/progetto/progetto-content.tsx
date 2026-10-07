@@ -41,14 +41,19 @@ async function adminClient() {
   return supabase;
 }
 
-async function syncConfirmedItemsToQuote(supabase: any, coupleId: string, projectId: string) {
-  const { data: quote } = await supabase.from("quotes")
-    .select("id")
+async function prepareQuoteFromProject(formData: FormData) {
+  "use server";
+  const supabase = await adminClient();
+  const projectId = String(formData.get("project_id") || "");
+  const coupleId = String(formData.get("couple_id") || "");
+  if (!projectId || !coupleId) return;
+
+  const { data: project } = await supabase.from("floral_projects")
+    .select("id,couple_id,wedding_id,name,total_amount")
+    .eq("id", projectId)
     .eq("couple_id", coupleId)
-    .order("created_at", { ascending: false })
-    .limit(1)
     .maybeSingle();
-  if (!quote) return;
+  if (!project) return;
 
   const { data: selectedItems } = await supabase.from("floral_project_items")
     .select("id,category,name,description,quantity,unit,notes,sort_order,include_in_quote")
@@ -56,18 +61,54 @@ async function syncConfirmedItemsToQuote(supabase: any, coupleId: string, projec
     .eq("include_in_quote", true)
     .order("sort_order", { ascending: true });
 
-  await supabase.from("quote_items")
-    .delete()
-    .eq("quote_id", quote.id)
-    .like("notes", "floral_project_item_id:%");
+  const { data: latestQuote } = await supabase.from("quotes")
+    .select("id,version_number,status,deposit_amount")
+    .eq("couple_id", coupleId)
+    .order("version_number", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const reusableDraft = latestQuote && latestQuote.status === "bozza";
+  const version = reusableDraft ? latestQuote.version_number : (latestQuote?.version_number || 0) + 1;
+  let quoteId = reusableDraft ? latestQuote.id : null;
+
+  if (quoteId) {
+    const { error } = await supabase.from("quotes").update({
+      wedding_id: project.wedding_id,
+      floral_project_id: project.id,
+      title: `Preventivo progetto floreale v${version}`,
+      total_amount: Number(project.total_amount || 0),
+      updated_at: new Date().toISOString(),
+    }).eq("id", quoteId);
+    if (error) throw new Error(error.message);
+    const { error: deleteError } = await supabase.from("quote_items").delete()
+      .eq("quote_id", quoteId)
+      .not("floral_project_item_id", "is", null);
+    if (deleteError) throw new Error(deleteError.message);
+  } else {
+    const { data: created, error } = await supabase.from("quotes").insert({
+      couple_id: coupleId,
+      wedding_id: project.wedding_id,
+      version_number: version,
+      status: "bozza",
+      title: `Preventivo progetto floreale v${version}`,
+      total_amount: Number(project.total_amount || 0),
+      deposit_amount: 0,
+      vat_included: true,
+      created_by: (await supabase.auth.getUser()).data.user?.id || null,
+    }).select("id").single();
+    if (error) throw new Error(error.message);
+    quoteId = created.id;
+  }
 
   const rows = (selectedItems || []).map((item: any, index: number) => ({
-    quote_id: quote.id,
+    quote_id: quoteId,
+    floral_project_item_id: item.id,
     area: item.category || null,
     description: item.description ? `${item.name} — ${item.description}` : item.name,
     quantity: item.quantity ?? 1,
     unit: item.unit || "pz",
-    notes: `floral_project_item_id:${item.id}${item.notes ? ` — ${item.notes}` : ""}`,
+    notes: item.notes || null,
     sort_order: index + 1,
   }));
 
@@ -75,6 +116,9 @@ async function syncConfirmedItemsToQuote(supabase: any, coupleId: string, projec
     const { error } = await supabase.from("quote_items").insert(rows);
     if (error) throw new Error(error.message);
   }
+
+  revalidatePath(`/protected/coppie/${coupleId}/progetto`);
+  redirect(`/protected/coppie/${coupleId}/progetto?saved=quote`);
 }
  
 async function saveSection(formData: FormData) {
@@ -148,7 +192,7 @@ async function savePreset(formData: FormData) {
     quantity,
     unit: "pz",
     include_in_quote: selected,
-    include_in_contract: selected,
+    include_in_contract: false,
   };
 
   if (existing?.id) {
@@ -158,7 +202,6 @@ async function savePreset(formData: FormData) {
     const { error } = await supabase.from("floral_project_items").insert(payload);
     if (error) throw new Error(error.message);
   }
-  await syncConfirmedItemsToQuote(supabase, coupleId, projectId);
   revalidatePath(`/protected/coppie/${coupleId}/progetto`);
   redirect(`/protected/coppie/${coupleId}/progetto?saved=preset`);
 }
@@ -195,7 +238,6 @@ async function saveProject(formData: FormData) {
     total_amount: Number.isFinite(total as number) ? total : null,
   }).eq("id", id);
   if (error) throw new Error(error.message);
-  await syncConfirmedItemsToQuote(supabase, coupleId, id);
   revalidatePath(`/protected/coppie/${coupleId}/progetto`);
   redirect(`/protected/coppie/${coupleId}/progetto?saved=project`);
 }
@@ -225,7 +267,9 @@ export async function ProgettoFlorealeContent({ params, searchParams }: { params
 
   const coupleName = [couple.partner1_first_name,couple.partner1_last_name,couple.partner2_first_name,couple.partner2_last_name].filter(Boolean).join(" ");
   const saved = resolvedSearchParams.saved;
-  const notice = saved === "section"
+  const notice = saved === "quote"
+    ? "Preventivo preparato/aggiornato dal progetto. È ancora in bozza e non modifica il contratto."
+    : saved === "section"
     ? "Dati della sezione salvati correttamente."
     : saved === "composition"
       ? "Composizione aggiunta correttamente."
@@ -283,8 +327,8 @@ export async function ProgettoFlorealeContent({ params, searchParams }: { params
             <div><h3 className="font-bold">{item.name}</h3>{item.description && <p className="text-sm text-slate-600">{item.description}</p>}<p className="text-sm text-slate-500">Quantità: {item.quantity} {item.unit}</p></div>
             <form action={confirmItem} className="flex items-center gap-2">
               <input type="hidden" name="couple_id" value={coupleId}/><input type="hidden" name="item_id" value={item.id}/>
-              <input id={`confirm-${item.id}`} type="checkbox" name="selected" defaultChecked={item.include_in_quote && item.include_in_contract} className="h-5 w-5"/>
-              <label htmlFor={`confirm-${item.id}`} className="text-sm font-semibold">Confermato dalla sposa — preventivo + contratto</label>
+              <input id={`confirm-${item.id}`} type="checkbox" name="selected" defaultChecked={item.include_in_quote} className="h-5 w-5"/>
+              <label htmlFor={`confirm-${item.id}`} className="text-sm font-semibold">Inserisci nel preventivo</label>
               <button className="rounded-lg border bg-white px-3 py-2 text-sm font-semibold">Salva</button>
             </form>
           </div>
@@ -305,7 +349,7 @@ export async function ProgettoFlorealeContent({ params, searchParams }: { params
             <input type="hidden" name="project_id" value={project.id}/><input type="hidden" name="couple_id" value={coupleId}/>
             <input type="hidden" name="category" value={category}/><input type="hidden" name="service_key" value={serviceKey}/><input type="hidden" name="name" value={name}/>
             <div className="grid gap-3 md:grid-cols-[auto_1fr_120px_auto] md:items-center">
-              <input type="checkbox" name="selected" defaultChecked={!!item?.include_in_quote && !!item?.include_in_contract} className="h-5 w-5"/>
+              <input type="checkbox" name="selected" defaultChecked={!!item?.include_in_quote} className="h-5 w-5"/>
               <div className="font-semibold">{name}</div>
               <input name="quantity" type="number" min="1" defaultValue={item?.quantity || 1} className="rounded-lg border px-3 py-2" aria-label={`Quantità ${name}`}/>
               <button className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white">Salva scelta</button>
@@ -328,7 +372,7 @@ export async function ProgettoFlorealeContent({ params, searchParams }: { params
         <select name="status" defaultValue={project.status} className="rounded-xl border bg-white px-4 py-3"><option value="draft">Bozza</option><option value="in_progress">In lavorazione</option><option value="approved">Approvato</option><option value="completed">Completato</option><option value="archived">Archiviato</option></select>
         <input name="total_amount" defaultValue={project.total_amount ?? ""} placeholder="Totale progetto €" className="rounded-xl border px-4 py-3"/>
         <button className="rounded-xl bg-slate-900 px-4 py-3 font-semibold text-white">Salva progetto</button>
-        <textarea name="notes" defaultValue={project.notes || ""} placeholder="Note generali..." rows={3} className="rounded-xl border px-4 py-3 md:col-span-4"/>
+        <textarea name="notes" defaultValue={project.notes || ""} placeholder="Note generali..." rows={3} className="rounded-xl border px-4 py-3 md:col-span-4"/>\n      <div className="md:col-span-4 rounded-xl border border-blue-200 bg-blue-50 p-4"><p className="text-sm text-blue-900">Il progetto è indipendente da preventivo e contratto. Le modifiche vengono trasferite al preventivo solo quando premi il pulsante seguente.</p><form action={prepareQuoteFromProject} className="mt-3"><input type="hidden" name="project_id" value={project.id}/><input type="hidden" name="couple_id" value={coupleId}/><button className="rounded-xl bg-blue-700 px-5 py-3 font-semibold text-white">Prepara / aggiorna preventivo</button></form></div>
       </form>
     </section>
 
