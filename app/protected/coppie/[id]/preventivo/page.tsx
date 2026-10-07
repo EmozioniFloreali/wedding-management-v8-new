@@ -83,6 +83,10 @@ async function salvaPreventivo(formData: FormData) {
   const quoteId = value(formData, "quote_id");
   const weddingId = value(formData, "wedding_id") || null;
   const status = value(formData, "status") || "bozza";
+  const allowedAdminStatuses = new Set(["bozza", "presentato", "in_attesa_conferma", "rifiutato_da_modificare"]);
+  if (!allowedAdminStatuses.has(status)) {
+    throw new Error("La conferma del preventivo è riservata agli sposi nell'Area Sposi.");
+  }
   const title = value(formData, "title") || "Preventivo Progetto Floreale";
   const validityDays = Math.max(0, Math.round(amount(formData, "validity_days") || 30));
   const notes = value(formData, "notes");
@@ -128,7 +132,8 @@ async function salvaVoce(formData: FormData) {
   const quoteId = value(formData, "quote_id");
   const description = value(formData, "description");
   if (!quoteId || !description) return;
-  const { data: quote } = await supabase.from("quotes").select("couple_id").eq("id", quoteId).single();
+  const { data: quote } = await supabase.from("quotes").select("couple_id,status").eq("id", quoteId).single();
+  if (quote?.status === "confermato") throw new Error("Il preventivo confermato non è modificabile. Crea una nuova versione dal Progetto Floreale.");
   const { error } = await supabase.from("quote_items").insert({
     quote_id: quoteId,
     area: "manuale",
@@ -147,7 +152,8 @@ async function eliminaVoce(formData: FormData) {
   const { supabase } = await getAdmin();
   const itemId = value(formData, "item_id");
   const quoteId = value(formData, "quote_id");
-  const { data: quote } = await supabase.from("quotes").select("couple_id").eq("id", quoteId).single();
+  const { data: quote } = await supabase.from("quotes").select("couple_id,status").eq("id", quoteId).single();
+  if (quote?.status === "confermato") throw new Error("Il preventivo confermato non è modificabile. Crea una nuova versione dal Progetto Floreale.");
   await supabase.from("quote_items").delete().eq("id", itemId);
   if (quote) revalidatePath(`/protected/coppie/${quote.couple_id}/preventivo`);
 }
@@ -257,7 +263,7 @@ export default async function PreventivoPage({ params }: { params: Promise<{ id:
             <input type="hidden" name="quote_id" value={quote?.id || ""}/>
             <input type="hidden" name="wedding_id" value={wedding?.id || ""}/>
             <div><label className="mb-1 block text-sm font-semibold">Titolo</label><input name="title" defaultValue={quote?.title || "Preventivo Progetto Floreale"} className="w-full rounded-xl border px-3 py-3"/></div>
-            <div><label className="mb-1 block text-sm font-semibold">Stato</label><select name="status" defaultValue={quote?.status || "bozza"} className="w-full rounded-xl border px-3 py-3">{STATUS.map(([v,l])=><option key={v} value={v}>{l}</option>)}</select></div>
+            <div><label className="mb-1 block text-sm font-semibold">Stato</label><select name="status" defaultValue={quote?.status || "bozza"} className="w-full rounded-xl border px-3 py-3">{STATUS.filter(([v]) => v !== "confermato").map(([v,l])=><option key={v} value={v}>{l}</option>)}</select></div>
             <div><label className="mb-1 block text-sm font-semibold">Validità (giorni)</label><input name="validity_days" type="number" min="0" defaultValue={quote?.validity_days ?? 30} className="w-full rounded-xl border px-3 py-3"/></div>
             <div><label className="mb-1 block text-sm font-semibold">Totale progetto €</label><input name="total_amount" defaultValue={quote?.total_amount ?? project.total_amount ?? ""} className="w-full rounded-xl border px-3 py-3"/></div>
             <div><label className="mb-1 block text-sm font-semibold">Acconto €</label><input name="deposit_amount" defaultValue={quote?.deposit_amount ?? 0} className="w-full rounded-xl border px-3 py-3"/></div>
