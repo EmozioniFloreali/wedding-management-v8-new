@@ -214,11 +214,9 @@ async function confirmItem(formData: FormData) {
   if (!coupleId || !itemId) return;
   const { error } = await supabase.from("floral_project_items").update({
     include_in_quote: selected,
-    include_in_contract: selected,
+    include_in_contract: false,
   }).eq("id", itemId);
   if (error) throw new Error(error.message);
-  const { data: item } = await supabase.from("floral_project_items").select("project_id").eq("id", itemId).maybeSingle();
-  if (item?.project_id) await syncConfirmedItemsToQuote(supabase, coupleId, item.project_id);
   revalidatePath(`/protected/coppie/${coupleId}/progetto`);
   redirect(`/protected/coppie/${coupleId}/progetto?saved=item`);
 }
