@@ -160,8 +160,8 @@ export default async function ProgettoFlorealeSposiPage({
                             {item.description && <p className="mt-1 text-sm text-slate-600">{item.description}</p>}
                             <p className="mt-1 text-sm text-slate-500">Quantità: {item.quantity} {item.unit}</p>
                           </div>
-                          <div className={`rounded-full px-3 py-1 text-xs font-semibold ${item.include_in_quote && item.include_in_contract ? "bg-emerald-100 text-emerald-800" : "bg-slate-100 text-slate-600"}`}>
-                            {item.include_in_quote && item.include_in_contract ? "Confermato" : "Da confermare"}
+                          <div className={`rounded-full px-3 py-1 text-xs font-semibold ${item.include_in_quote ? "bg-emerald-100 text-emerald-800" : "bg-slate-100 text-slate-600"}`}>
+                            {item.include_in_quote ? "Selezionato per il preventivo" : "Solo progetto"}
                           </div>
                         </div>
                       </div>
