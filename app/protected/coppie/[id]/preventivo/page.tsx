@@ -2,9 +2,6 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-
-export const instant = false;
-
 const STATUS = [
   ["bozza", "Bozza"],
   ["in_attesa_conferma", "In attesa di conferma"],
