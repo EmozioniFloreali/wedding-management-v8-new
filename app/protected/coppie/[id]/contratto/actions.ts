@@ -280,7 +280,7 @@ export async function generaContratto(formData: FormData) {
 
   const { error: uploadError } = await supabase.storage
     .from("client-documents")
-    .upload(storagePath, new Blob([pdf], { type: "application/pdf" }), { contentType: "application/pdf", upsert: false });
+    .upload(storagePath, pdf, { contentType: "application/pdf", upsert: false });
 
   if (uploadError) {
     await supabase.from("contract_items").delete().eq("contract_id", contract.id);
