@@ -156,6 +156,7 @@ async function salvaPreventivo(formData: FormData) {
       .from("quotes")
       .update({
         wedding_id: weddingId,
+        status,
         title,
         validity_days: validityDays,
         notes: notes || null,
