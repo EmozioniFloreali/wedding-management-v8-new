@@ -35,7 +35,7 @@ async function addPayment(formData:FormData){
 
   const {data:contract,error:contractError}=await supabase
     .from("contracts")
-    .select("id,version_number,total_amount,contract_date")
+    .select("id,quote_id,version_number,total_amount,contract_date")
     .eq("id",contractId).eq("couple_id",coupleId).maybeSingle();
   if(contractError||!contract)throw new Error(contractError?.message||"Contratto non trovato.");
 
@@ -70,7 +70,7 @@ async function addPayment(formData:FormData){
 
   const {data:wedding}=await supabase
     .from("weddings")
-    .select("wedding_date,venue")
+    .select("id,wedding_date,venue")
     .eq("couple_id",coupleId)
     .order("wedding_date",{ascending:true}).limit(1).maybeSingle();
 
@@ -97,8 +97,8 @@ async function addPayment(formData:FormData){
     .from("client_documents")
     .insert({
       couple_id:coupleId,
-      wedding_id:null,
-      quote_id:null,
+      wedding_id:wedding?.id || null,
+      quote_id:contract.quote_id || null,
       floral_project_id:null,
       name:filename,
       category:"pagamento",
