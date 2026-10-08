@@ -74,3 +74,12 @@
   .ef-button-primary { @apply rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-sm transition hover:opacity-90; }
   .ef-button-secondary { @apply rounded-xl border bg-card px-5 py-3 text-sm font-semibold transition hover:bg-muted; }
 }
+
+/* V8 NEW responsive finishing layer */
+.ef-page-shell { width: 100%; }
+.ef-section-title { display:flex; align-items:center; justify-content:space-between; gap:1rem; }
+@media (max-width: 640px) {
+  .ef-card { border-radius: 1rem; }
+  .ef-button-primary, .ef-button-secondary { min-height: 44px; }
+  .ef-section-title { align-items:flex-start; flex-direction:column; }
+}
