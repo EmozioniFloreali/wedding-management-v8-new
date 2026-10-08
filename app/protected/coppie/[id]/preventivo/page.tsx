@@ -217,7 +217,29 @@ async function salvaPreventivo(formData: FormData) {
     const contractForm = new FormData();
     contractForm.set("couple_id", coupleId);
     contractForm.set("quote_id", quote.id);
-    await generaContratto(contractForm);
+    contractForm.set("return_to_preventivo", "1");
+
+    try {
+      await generaContratto(contractForm);
+    } catch (error) {
+      // La presentazione del preventivo e la generazione del contratto devono
+      // essere atomiche: se il contratto non viene completato, la versione
+      // torna automaticamente in bozza invece di restare "presentata".
+      await supabase
+        .from("quotes")
+        .update({
+          status: "bozza",
+          presented_at: null,
+          confirmed_at: null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", quote.id);
+
+      const message = error instanceof Error ? error.message : "Errore generazione contratto.";
+      redirect(`/protected/coppie/${coupleId}/preventivo?error=${encodeURIComponent(message)}`);
+    }
+
+    redirect(`/protected/coppie/${coupleId}/preventivo?success=1`);
   }
 }
 
@@ -389,8 +411,15 @@ async function eliminaDocumento(formData: FormData) {
   revalidatePath(`/protected/coppie/${coupleId}/preventivo`);
 }
 
-export default async function PreventivoPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function PreventivoPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ error?: string; success?: string }>;
+}) {
   const { id: coupleId } = await params;
+  const query = await searchParams;
   const { supabase } = await getAdmin();
 
   const { data: couple } = await supabase.from("couples")
@@ -423,6 +452,20 @@ export default async function PreventivoPage({ params }: { params: Promise<{ id:
   return (
     <main className="min-h-screen bg-slate-50">
       <div className="mx-auto max-w-7xl px-6 py-8">
+        {query.error && (
+          <div className="mb-6 rounded-2xl border border-red-300 bg-red-50 p-5 text-sm text-red-900">
+            <div className="font-bold">Errore nella generazione del contratto</div>
+            <div className="mt-1 whitespace-pre-wrap break-words">{query.error}</div>
+            <div className="mt-3 text-xs text-red-800">
+              Il preventivo è stato riportato automaticamente in bozza. Nessuna nuova versione è stata creata.
+            </div>
+          </div>
+        )}
+        {query.success && !query.error && (
+          <div className="mb-6 rounded-2xl border border-emerald-300 bg-emerald-50 p-5 text-sm text-emerald-900">
+            <div className="font-bold">Preventivo presentato e contratto generato correttamente.</div>
+          </div>
+        )}
         <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <div className="mb-2 flex flex-wrap items-center gap-2 text-sm text-slate-500">
