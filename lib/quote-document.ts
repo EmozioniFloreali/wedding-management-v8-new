@@ -54,23 +54,23 @@ function buildPdf(data:QuoteDocumentData){
   const bold=obj("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>");
   const pages=obj("<< /Type /Pages /Kids [] /Count 0 >>"); const pageIds:number[]=[];
   for(let start=0;start<lines.length;start+=36){
-    const pg=lines.slice(start,start+36); let stream="";
-    stream+="q 0.36 0.44 0.21 rg 48 806 499 4 re f Q\n";
-    stream+="q 0.82 0.05 0.28 rg 48 54 499 1 re f Q\n";
-    stream+="BT\n";
+    const pg=lines.slice(start,start+36); let graphics="";
+    graphics+="q 0.36 0.44 0.21 rg 48 806 499 4 re f Q\n";
+    graphics+="q 0.82 0.05 0.28 rg 48 54 499 1 re f Q\n";
+    let textStream="";
     pg.forEach((l,i)=>{
       const y=780-i*20;
       const isMain=l==="EMOZIONI FLOREALI"||l==="WEDDING & FLORAL DESIGN";
       const isHead=/^(PREVENTIVO PROFESSIONALE|DATI |PROGETTO |VOCI |RIEPILOGO |VALIDITÀ )/.test(l);
       if(l.startsWith("TOTALE COMPLESSIVO:")){
-        stream+="q 0.95 0.96 0.92 rg 44 "+(y-9)+" 507 24 re f Q\n";
-        stream+="0.36 0.44 0.21 rg\n/F2 13 Tf\n48 "+y+" Td ("+pdfEscape(l)+") Tj -48 -"+y+" Td\n";
+        graphics+="q 0.95 0.96 0.92 rg 44 "+(y-9)+" 507 24 re f Q\n";
+        textStream+="0.36 0.44 0.21 rg\n/F2 13 Tf\n48 "+y+" Td ("+pdfEscape(l)+") Tj -48 -"+y+" Td\n";
       } else {
-        if(isMain)stream+="0.36 0.44 0.21 rg\n"; else if(isHead)stream+="0.82 0.05 0.28 rg\n"; else stream+="0.13 0.13 0.13 rg\n";
-        stream+=(isMain||isHead?"/F2 11 Tf\n":"/F1 9.5 Tf\n")+"48 "+y+" Td ("+pdfEscape(l)+") Tj -48 -"+y+" Td\n";
+        if(isMain)textStream+="0.36 0.44 0.21 rg\n"; else if(isHead)textStream+="0.82 0.05 0.28 rg\n"; else textStream+="0.13 0.13 0.13 rg\n";
+        textStream+=(isMain||isHead?"/F2 11 Tf\n":"/F1 9.5 Tf\n")+"48 "+y+" Td ("+pdfEscape(l)+") Tj -48 -"+y+" Td\n";
       }
     });
-    stream+="ET\n";
+    const stream=graphics+"BT\n"+textStream+"ET\n";
     const sid=obj("<< /Length "+Buffer.byteLength(stream,"latin1")+" >>\nstream\n"+stream+"endstream");
     pageIds.push(obj("<< /Type /Page /Parent "+pages+" 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 "+font+" 0 R /F2 "+bold+" 0 R >> >> /Contents "+sid+" 0 R >>"));
   }
