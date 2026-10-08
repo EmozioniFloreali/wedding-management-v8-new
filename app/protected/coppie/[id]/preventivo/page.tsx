@@ -220,6 +220,91 @@ async function salvaPreventivo(formData: FormData) {
   }
 }
 
+async function creaNuovaVersione(formData: FormData) {
+  "use server";
+  const { supabase, user } = await getAdmin();
+
+  const coupleId = value(formData, "couple_id");
+  const sourceQuoteId = value(formData, "quote_id");
+  if (!coupleId || !sourceQuoteId) return;
+
+  const { data: sourceQuote, error: sourceError } = await supabase
+    .from("quotes")
+    .select("id,couple_id,wedding_id,version_number,status,title,validity_days,notes,total_amount,deposit_amount,vat_included")
+    .eq("id", sourceQuoteId)
+    .eq("couple_id", coupleId)
+    .maybeSingle();
+
+  if (sourceError) throw new Error(sourceError.message);
+  if (!sourceQuote) throw new Error("Preventivo di origine non trovato.");
+  if (sourceQuote.status === "bozza") {
+    revalidatePath(`/protected/coppie/${coupleId}/preventivo`);
+    return;
+  }
+
+  const { data: latest } = await supabase
+    .from("quotes")
+    .select("version_number")
+    .eq("couple_id", coupleId)
+    .order("version_number", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const versionNumber = Number(latest?.version_number || sourceQuote.version_number || 0) + 1;
+
+  const { data: newQuote, error: insertError } = await supabase
+    .from("quotes")
+    .insert({
+      couple_id: coupleId,
+      wedding_id: sourceQuote.wedding_id,
+      version_number: versionNumber,
+      status: "bozza",
+      title: sourceQuote.title || "Preventivo Progetto Floreale",
+      validity_days: sourceQuote.validity_days ?? 30,
+      notes: sourceQuote.notes || null,
+      total_amount: sourceQuote.total_amount ?? 0,
+      deposit_amount: sourceQuote.deposit_amount ?? 0,
+      vat_included: Boolean(sourceQuote.vat_included),
+      created_by: user.id,
+      presented_at: null,
+      confirmed_at: null,
+    })
+    .select("id")
+    .single();
+
+  if (insertError || !newQuote) {
+    throw new Error(insertError?.message || "Impossibile creare la nuova versione del preventivo.");
+  }
+
+  const { data: sourceItems, error: itemsError } = await supabase
+    .from("quote_items")
+    .select("floral_project_item_id,area,description,quantity,unit,notes,sort_order")
+    .eq("quote_id", sourceQuoteId)
+    .order("sort_order", { ascending: true });
+
+  if (itemsError) throw new Error(itemsError.message);
+
+  if (sourceItems?.length) {
+    const rows = sourceItems.map((item: any, index: number) => ({
+      quote_id: newQuote.id,
+      floral_project_item_id: item.floral_project_item_id || null,
+      area: item.area || "progetto_floreale",
+      description: item.description || "",
+      quantity: item.quantity ?? 1,
+      unit: item.unit || "pz",
+      notes: item.notes || null,
+      sort_order: item.sort_order ?? index + 1,
+    }));
+
+    const { error: cloneError } = await supabase.from("quote_items").insert(rows);
+    if (cloneError) throw new Error(cloneError.message);
+  }
+
+  revalidatePath(`/protected/coppie/${coupleId}/preventivo`);
+  revalidatePath(`/protected/coppie/${coupleId}/progetto`);
+  redirect(`/protected/coppie/${coupleId}/preventivo`);
+}
+
 async function salvaVoce(formData: FormData) {
   "use server";
   const { supabase } = await getAdmin();
@@ -364,8 +449,24 @@ export default async function PreventivoPage({ params }: { params: Promise<{ id:
         </div>
 
         <section className="mb-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-xl font-bold">Dati economici</h2>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-xl font-bold">Dati economici</h2>
+            {quote && <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">Versione V{quote.version_number}</span>}
+          </div>
           <p className="mt-1 text-sm text-slate-500">Il prezzo resta unico: non vengono assegnati prezzi alle singole composizioni.</p>
+          {quote && uiStatus(quote.status) !== "bozza" && (
+            <form action={creaNuovaVersione} className="mt-5 mb-5 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+              <div>
+                <p className="font-semibold text-emerald-900">Versione {quote.version_number} storica</p>
+                <p className="text-sm text-emerald-800">Crea una nuova bozza mantenendo intatta questa versione e il relativo contratto.</p>
+              </div>
+              <input type="hidden" name="couple_id" value={coupleId}/>
+              <input type="hidden" name="quote_id" value={quote.id}/>
+              <button className="rounded-xl bg-emerald-700 px-5 py-3 text-sm font-semibold text-white hover:bg-emerald-800">
+                + Crea nuova versione V{Number(quote.version_number || 0) + 1}
+              </button>
+            </form>
+          )}
           <form action={salvaPreventivo} className="mt-5 grid gap-5 lg:grid-cols-4">
             <input type="hidden" name="couple_id" value={coupleId}/>
             <input type="hidden" name="project_id" value={project.id}/>
