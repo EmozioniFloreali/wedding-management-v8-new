@@ -63,6 +63,7 @@ export function buildPaymentReceiptPdf(data:PaymentReceiptData):Uint8Array{
   for(let start=0;start<lines.length;start+=34){
     const pg=lines.slice(start,start+34);let graphics="";
     graphics+="q 0.36 0.44 0.21 rg 48 806 499 4 re f Q\n";
+    graphics+="BT\n/F2 12 Tf\n0.36 0.44 0.21 rg\n1 0 0 1 505 810 Tm (EF) Tj\nET\n";
     graphics+="q 0.82 0.05 0.28 rg 48 54 499 1 re f Q\n";
     let ts="";
     pg.forEach((line,i)=>{
