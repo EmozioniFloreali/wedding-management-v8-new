@@ -166,7 +166,6 @@ export default async function PagamentiPage({params,searchParams}:{params:Promis
     .in("contract_id",contractIds).order("payment_date",{ascending:true}).order("created_at",{ascending:true});
   const rows=payments||[];
   const total=Number(contract.total_amount||0);
-  const paidBeforeForLatest=(payments||[]).filter(p=>p.contract_id===contract.id).reduce((s,p)=>s+Number(p.amount||0),0);
   let running=0;
   const computed=rows.map(p=>{running+=Number(p.amount||0);return {...p,after:running,balance:Math.max(0,total-running)}});
 
