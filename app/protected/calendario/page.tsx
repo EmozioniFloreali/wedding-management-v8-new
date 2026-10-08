@@ -72,13 +72,13 @@ export default async function CalendarioPage() {
   if (!isAdmin) {
     if (!coupleIds.length) {
       return (
-        <main className="min-h-screen bg-slate-50 px-6 py-10">
+        <main className="min-h-screen bg-background px-6 py-10">
           <div className="mx-auto max-w-6xl">
-            <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-              <h1 className="text-2xl font-bold text-slate-900">
+            <div className="rounded-2xl border border-border bg-card p-8 shadow-sm">
+              <h1 className="text-2xl font-semibold tracking-tight text-foreground">
                 Calendario
               </h1>
-              <p className="mt-2 text-slate-500">
+              <p className="mt-2 text-muted-foreground">
                 Non ci sono coppie associate al tuo account.
               </p>
             </div>
@@ -130,43 +130,43 @@ export default async function CalendarioPage() {
   );
 
   return (
-    <main className="min-h-screen bg-slate-50 px-6 py-10">
+    <main className="min-h-screen bg-background px-6 py-10">
       <div className="mx-auto max-w-6xl">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
           <div>
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-muted-foreground">
               Emozioni Floreali → Wedding Management V8
             </p>
-            <h1 className="mt-1 text-3xl font-bold text-slate-900">
+            <h1 className="mt-1 text-3xl font-semibold tracking-tight text-foreground">
               Calendario
             </h1>
-            <p className="mt-2 text-slate-500">
+            <p className="mt-2 text-muted-foreground">
               Appuntamenti, sopralluoghi, consegne, montaggi e scadenze.
             </p>
           </div>
 
           <Link
             href="/protected"
-            className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            className="rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium text-foreground hover:bg-background"
           >
             Torna alla Dashboard
           </Link>
         </div>
 
-        <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <section className="ef-card p-6">
           <div className="mb-5 flex items-center justify-between">
             <div>
-              <h2 className="text-xl font-bold text-slate-900">
+              <h2 className="text-xl font-semibold tracking-tight text-foreground">
                 Agenda
               </h2>
-              <p className="mt-1 text-sm text-slate-500">
+              <p className="mt-1 text-sm text-muted-foreground">
                 {eventList.length} eventi presenti
               </p>
             </div>
           </div>
 
           {eventList.length === 0 ? (
-            <div className="rounded-xl bg-slate-50 p-6 text-sm text-slate-500">
+            <div className="rounded-xl bg-background p-6 text-sm text-muted-foreground">
               Nessun appuntamento presente nel calendario.
             </div>
           ) : (
@@ -178,15 +178,15 @@ export default async function CalendarioPage() {
                 return (
                   <div
                     key={event.id}
-                    className="rounded-xl border border-slate-200 p-4"
+                    className="rounded-xl border bg-secondary/40 p-4 transition hover:bg-secondary"
                   >
                     <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                       <div>
-                        <h3 className="font-semibold text-slate-900">
+                        <h3 className="font-semibold text-foreground">
                           {event.title || "Evento senza titolo"}
                         </h3>
 
-                        <p className="mt-1 text-sm text-slate-600">
+                        <p className="mt-1 text-sm text-muted-foreground">
                           {dateTimeIt(event.start_at)}
                           {event.end_at
                             ? ` → ${dateTimeIt(event.end_at)}`
@@ -194,21 +194,21 @@ export default async function CalendarioPage() {
                         </p>
 
                         <div className="mt-2 flex flex-wrap gap-2 text-xs">
-                          <span className="rounded-full bg-slate-100 px-3 py-1 text-slate-700">
+                          <span className="rounded-full bg-slate-100 px-3 py-1 text-foreground">
                             {typeLabel(event.event_type)}
                           </span>
 
-                          <span className="rounded-full bg-slate-100 px-3 py-1 text-slate-700">
+                          <span className="rounded-full bg-slate-100 px-3 py-1 text-foreground">
                             {statusLabel(event.status)}
                           </span>
                         </div>
 
-                        <p className="mt-3 text-sm text-slate-500">
+                        <p className="mt-3 text-sm text-muted-foreground">
                           <strong>Coppia:</strong> {coupleName}
                         </p>
 
                         {event.location && (
-                          <p className="mt-1 text-sm text-slate-500">
+                          <p className="mt-1 text-sm text-muted-foreground">
                             <strong>Luogo:</strong> {event.location}
                           </p>
                         )}
@@ -217,7 +217,7 @@ export default async function CalendarioPage() {
                       {event.couple_id && (
                         <Link
                           href={`/protected/coppie/${event.couple_id}/calendario`}
-                          className="inline-flex rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+                          className="inline-flex ef-button-primary px-4 py-2"
                         >
                           Apri calendario coppia
                         </Link>
