@@ -27,12 +27,12 @@ async function saveEvent(fd: FormData) {
   if(error) throw new Error(error.message); revalidatePath(`/protected/coppie/${coupleId}/calendario`);
 }
 async function updateStatus(fd: FormData) {
-  "use server"; const supabase=await createClient(); const {data:{user}}=await supabase.auth.getUser(); if(!user) redirect("/auth/login");
+  "use server"; const { supabase, user } = await requireAdmin();
   const id=s(fd.get("id")); const coupleId=s(fd.get("couple_id")); const status=s(fd.get("status")); if(!id||!coupleId||!STATUSES.includes(status)) return;
   const {error}=await supabase.from("calendar_events").update({status}).eq("id",id); if(error) throw new Error(error.message); revalidatePath(`/protected/coppie/${coupleId}/calendario`);
 }
 async function deleteEvent(fd: FormData) {
-  "use server"; const supabase=await createClient(); const {data:{user}}=await supabase.auth.getUser(); if(!user) redirect("/auth/login");
+  "use server"; const { supabase, user } = await requireAdmin();
   const id=s(fd.get("id")); const coupleId=s(fd.get("couple_id")); if(!id||!coupleId) return; const {error}=await supabase.from("calendar_events").delete().eq("id",id); if(error) throw new Error(error.message); revalidatePath(`/protected/coppie/${coupleId}/calendario`);
 }
 
