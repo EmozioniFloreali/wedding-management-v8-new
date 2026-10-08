@@ -1,9 +1,6 @@
 ﻿import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-
-export const instant = false;
-
 function dateTimeIt(value: string | null | undefined) {
   if (!value) return "Data non impostata";
 
