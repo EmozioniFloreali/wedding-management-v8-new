@@ -129,7 +129,12 @@ export function buildContractPdf(data:ContractData):Uint8Array{
   chunks.push("xref\n0 "+(objects.length+1)+"\n0000000000 65535 f \n");
   for(let i=1;i<=objects.length;i++)chunks.push(String(offsets[i]).padStart(10,"0")+" 00000 n \n");
   chunks.push("trailer\n<< /Size "+(objects.length+1)+" /Root "+catalog+" 0 R >>\nstartxref\n"+xref+"\n%%EOF");
-  return new Uint8Array(Buffer.from(chunks.join(""),"latin1"));
+  const bytes=new Uint8Array(Buffer.from(chunks.join(""),"latin1"));
+  const raw=Buffer.from(bytes).toString("latin1");
+  if(!raw.startsWith("%PDF-1.4\n") || !raw.includes("\nxref\n") || !raw.includes("\ntrailer\n") || !raw.includes("\n%%EOF")){
+    throw new Error("Generazione PDF contratto non valida.");
+  }
+  return bytes;
 }
 
 function escXml(s:string){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&apos;")}
