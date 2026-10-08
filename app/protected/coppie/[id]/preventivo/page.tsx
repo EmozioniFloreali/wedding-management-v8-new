@@ -121,7 +121,28 @@ async function salvaPreventivo(formData: FormData) {
   if (!coupleId || !projectId) return;
 
   if (quoteId) {
-    await assertQuoteDraft(supabase, quoteId);
+    const { data: existingQuote, error: existingQuoteError } = await supabase
+      .from("quotes")
+      .select("id,status")
+      .eq("id", quoteId)
+      .maybeSingle();
+    if (existingQuoteError) throw new Error(existingQuoteError.message);
+    if (!existingQuote) throw new Error("Preventivo non trovato.");
+
+    // Recupero controllato: se il precedente tentativo di presentazione
+    // ha già portato lo stato a "sent" ma la generazione del contratto
+    // è fallita, consentiamo di ripetere esclusivamente la generazione.
+    if (existingQuote.status !== "draft") {
+      if (statusUi === "presentato" && existingQuote.status === "sent") {
+        await generaContratto((() => {
+          const fd = new FormData();
+          fd.set("couple_id", coupleId);
+          return fd;
+        })());
+        return;
+      }
+      throw new Error("Il preventivo non è più modificabile perché è stato presentato. Modifica il Progetto Floreale e crea una nuova versione del preventivo.");
+    }
   }
 
   const payload = {
@@ -145,7 +166,7 @@ async function salvaPreventivo(formData: FormData) {
 
   const { data: quote, error } = quoteId
     ? await supabase.from("quotes").update(payload).eq("id", quoteId).select("id").single()
-    : await supabase.from("quotes").insert({ ...payload, version_number: 1 }).select("id").single();
+    : await supabase.from("quotes").insert(payload).select("id").single();
 
   if (error || !quote) throw new Error(error?.message || "Impossibile salvare il preventivo");
 
