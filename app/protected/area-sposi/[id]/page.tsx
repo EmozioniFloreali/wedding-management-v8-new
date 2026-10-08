@@ -31,14 +31,18 @@ export default async function AreaSposiPage({ params }: { params: Promise<{ id: 
   const { data: couple } = await supabase.from("couples").select("id,partner1_first_name,partner1_last_name,partner2_first_name,partner2_last_name,portal_enabled").eq("id", id).maybeSingle();
   if (!couple) redirect("/protected");
   if (!couple.portal_enabled && profile?.role !== "admin") redirect("/protected");
-  const [{ data: wedding }, { data: project }, { data: events }, { data: messages }, { data: docs }, { data: quote }] = await Promise.all([
+  const [{ data: wedding }, { data: project }, { data: events }, { data: docs }, { data: quote }] = await Promise.all([
     supabase.from("weddings").select("wedding_date,wedding_time,venue,ceremony_location,church,reception_hall,status,notes").eq("couple_id", id).maybeSingle(),
     supabase.from("floral_projects").select("id,name,status,notes,total_amount").eq("couple_id", id).maybeSingle(),
     supabase.from("calendar_events").select("id,title,start_at,event_type,location,status").eq("couple_id", id).order("start_at", { ascending: true }).limit(8),
-    supabase.from("messages").select("id,body,created_at,sender_id,read_at").eq("couple_id", id).order("created_at", { ascending: false }).limit(5),
+
     supabase.from("client_documents").select("id,name,category,storage_path,mime_type,visible_to_couple,created_at").eq("couple_id", id).eq("visible_to_couple", true).order("created_at", { ascending: false }),
     supabase.from("quotes").select("id,status,validity_days,total_amount,deposit_amount,confirmed_at").eq("couple_id", id).order("version_number", { ascending: false }).limit(1).maybeSingle(),
   ]);
+  const { data: conversation } = await supabase.from("conversations").select("id").eq("couple_id", id).order("created_at", { ascending: true }).limit(1).maybeSingle();
+  const { data: messages } = conversation
+    ? await supabase.from("messages").select("id,body,created_at,sender_id,read_at").eq("conversation_id", conversation.id).order("created_at", { ascending: false }).limit(5)
+    : { data: [] };
   const name = [couple.partner1_first_name, couple.partner1_last_name, couple.partner2_first_name, couple.partner2_last_name].filter(Boolean).join(" ");
 
   let quoteTotal = Number(quote?.total_amount || 0);
