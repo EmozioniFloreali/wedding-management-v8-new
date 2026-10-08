@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { requireAdmin } from "@/lib/admin-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,9 +14,7 @@ const text = (value: FormDataEntryValue | null) => String(value || "").trim();
 
 async function updateCouple(formData: FormData) {
   "use server";
-  const supabase = await createClient();
-  const { data: userData, error: userError } = await supabase.auth.getUser();
-  if (userError || !userData.user) redirect("/auth/login");
+  const { supabase } = await requireAdmin();
 
   const id = text(formData.get("id"));
   const partner1FirstName = text(formData.get("partner1_first_name"));
@@ -51,6 +50,7 @@ async function updateCouple(formData: FormData) {
 }
 
 export default async function ModificaCoppiaPage({
+  await requireAdmin();
   params,
   searchParams,
 }: {
