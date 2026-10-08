@@ -300,7 +300,7 @@ export async function generaContratto(formData: FormData) {
       storage_path: storagePath,
       mime_type: "application/pdf",
       file_size: pdf.byteLength,
-      visible_to_couple: false,
+      visible_to_couple: true,
       notes: `Contratto V${contractVersion} generato automaticamente dal Progetto Floreale e dal Preventivo V${quote?.version_number || "—"}.`,
       uploaded_by: user.id,
     })
