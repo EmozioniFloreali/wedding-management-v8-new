@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { requireAdmin } from "@/lib/admin-auth";
 import {
   ArrowLeft,
   CalendarDays,
@@ -21,7 +22,7 @@ type PageProps = {
 export default async function CoupleDetailPage({ params }: PageProps) {
   const { id } = await params;
 
-  const supabase = await createClient();
+  const { supabase } = await requireAdmin();
 
   const {
     data: couple,
