@@ -169,33 +169,33 @@ export default async function PagamentiPage({params,searchParams}:{params:Promis
   let running=0;
   const computed=rows.map(p=>{running+=Number(p.amount||0);return {...p,after:running,balance:Math.max(0,total-running)}});
 
-  return <main className="min-h-screen bg-slate-50">
+  return <main className="min-h-screen bg-background">
     <div className="mx-auto max-w-7xl px-6 py-8">
       <Link href={"/protected/coppie/"+coupleId} className="text-sm underline">← Torna alla scheda coppia</Link>
       <div className="mb-4"><img src="/logo-emozioni-floreali.svg" alt="Emozioni Floreali di Giusy Surace" className="h-auto w-full max-w-[380px]" /></div><div className="mt-4 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div>
           <p className="text-sm font-semibold uppercase tracking-wide text-amber-700">Area professionale riservata</p>
-          <h1 className="text-3xl font-bold">Pagamenti e quietanze</h1>
-          <p className="mt-1 text-slate-600">{couple.partner1_first_name} {couple.partner1_last_name} & {couple.partner2_first_name} {couple.partner2_last_name}</p>
+          <h1 className="text-3xl font-semibold tracking-tight">Pagamenti e quietanze</h1>
+          <p className="mt-1 text-muted-foreground">{couple.partner1_first_name} {couple.partner1_last_name} & {couple.partner2_first_name} {couple.partner2_last_name}</p>
         </div>
         <div className="flex gap-2">
-          <Link href={"/protected/coppie/"+coupleId+"/contratti"} className="rounded-xl border bg-white px-4 py-2 text-sm font-semibold">Contratti</Link>
-          <Link href={"/protected/coppie/"+coupleId+"/documenti"} className="rounded-xl border bg-white px-4 py-2 text-sm font-semibold">Documenti</Link>
+          <Link href={"/protected/coppie/"+coupleId+"/contratti"} className="ef-button-secondary px-4 py-2">Contratti</Link>
+          <Link href={"/protected/coppie/"+coupleId+"/documenti"} className="ef-button-secondary px-4 py-2">Documenti</Link>
         </div>
       </div>
 
-      {query.saved&&<div className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 font-semibold text-emerald-800">✓ Operazione completata.</div>}
+      {query.saved&&<div className="mt-6 rounded-xl border border-primary/20 bg-secondary px-4 py-3 font-semibold text-primary">✓ Operazione completata.</div>}
 
       <div className="mt-6 grid gap-4 md:grid-cols-4">
-        <div className="rounded-2xl border bg-white p-5 shadow-sm"><p className="text-sm text-slate-500">Contratto V{contract.version_number}</p><p className="mt-2 text-2xl font-bold">{euro(total)}</p></div>
-        <div className="rounded-2xl border bg-white p-5 shadow-sm"><p className="text-sm text-slate-500">Totale pagato</p><p className="mt-2 text-2xl font-bold">{euro(running)}</p></div>
-        <div className="rounded-2xl border bg-white p-5 shadow-sm"><p className="text-sm text-slate-500">Saldo residuo</p><p className="mt-2 text-2xl font-bold">{euro(Math.max(0,total-running))}</p></div>
-        <div className="rounded-2xl border bg-white p-5 shadow-sm"><p className="text-sm text-slate-500">Quietanze</p><p className="mt-2 text-2xl font-bold">{rows.length}</p></div>
+        <div className="ef-card p-5"><p className="text-sm text-muted-foreground">Contratto V{contract.version_number}</p><p className="mt-2 text-2xl font-bold">{euro(total)}</p></div>
+        <div className="ef-card p-5"><p className="text-sm text-muted-foreground">Totale pagato</p><p className="mt-2 text-2xl font-bold">{euro(running)}</p></div>
+        <div className="ef-card p-5"><p className="text-sm text-muted-foreground">Saldo residuo</p><p className="mt-2 text-2xl font-bold">{euro(Math.max(0,total-running))}</p></div>
+        <div className="ef-card p-5"><p className="text-sm text-muted-foreground">Quietanze</p><p className="mt-2 text-2xl font-bold">{rows.length}</p></div>
       </div>
 
-      <section className="mt-6 rounded-2xl border bg-white p-6 shadow-sm">
-        <h2 className="text-xl font-bold">Registra un pagamento</h2>
-        <p className="mt-1 text-sm text-slate-500">Il sistema genera automaticamente la quietanza PDF e la archivia nei Documenti della coppia.</p>
+      <section className="mt-6 ef-card p-6">
+        <h2 className="text-xl font-semibold tracking-tight">Registra un pagamento</h2>
+        <p className="mt-1 text-sm text-muted-foreground">Il sistema genera automaticamente la quietanza PDF e la archivia nei Documenti della coppia.</p>
         <form action={addPayment} className="mt-5 grid gap-4 md:grid-cols-6">
           <input type="hidden" name="couple_id" value={coupleId}/>
           <input type="hidden" name="contract_id" value={contract.id}/>
@@ -203,28 +203,28 @@ export default async function PagamentiPage({params,searchParams}:{params:Promis
           <label className="text-sm font-semibold">Importo €<input required name="amount" type="number" min="0.01" step="0.01" className="mt-1 w-full rounded-xl border px-4 py-3"/></label>
           <label className="text-sm font-semibold">Scontrino fiscale N.<input name="receipt_number" placeholder="Inserimento libero" className="mt-1 w-full rounded-xl border px-4 py-3"/></label>
           <label className="text-sm font-semibold">Data scontrino fiscale<input name="receipt_date" placeholder="Inserimento libero (es. 08/10/2026)" className="mt-1 w-full rounded-xl border px-4 py-3"/></label>
-          <label className="text-sm font-semibold">Modalità<select name="payment_method" className="mt-1 w-full rounded-xl border bg-white px-4 py-3"><option value="">Seleziona</option><option>Contanti</option><option>Bonifico</option><option>POS</option><option>Assegno</option><option>Altro</option></select></label>
+          <label className="text-sm font-semibold">Modalità<select name="payment_method" className="mt-1 w-full rounded-xl border bg-card px-4 py-3"><option value="">Seleziona</option><option>Contanti</option><option>Bonifico</option><option>POS</option><option>Assegno</option><option>Altro</option></select></label>
           <label className="text-sm font-semibold md:col-span-2">Causale<input name="description" placeholder="Acconto, secondo acconto, saldo..." className="mt-1 w-full rounded-xl border px-4 py-3"/></label>
           <label className="text-sm font-semibold md:col-span-2">Note<input name="notes" className="mt-1 w-full rounded-xl border px-4 py-3"/></label>
           <button className="rounded-xl bg-slate-900 px-5 py-3 font-semibold text-white md:col-span-2">+ Registra pagamento e genera quietanza</button>
         </form>
       </section>
 
-      <section className="mt-6 rounded-2xl border bg-white p-6 shadow-sm">
-        <h2 className="text-xl font-bold">Storico pagamenti</h2>
+      <section className="mt-6 ef-card p-6">
+        <h2 className="text-xl font-semibold tracking-tight">Storico pagamenti</h2>
         <div className="mt-5 space-y-3">
-          {!computed.length?<div className="rounded-xl border border-dashed p-8 text-center text-slate-500">Nessun pagamento registrato.</div>:
-          computed.map(p=><div key={p.id} className="rounded-2xl border bg-slate-50 p-4">
+          {!computed.length?<div className="rounded-xl border border-dashed p-8 text-center text-muted-foreground">Nessun pagamento registrato.</div>:
+          computed.map(p=><div key={p.id} className="rounded-2xl border bg-background p-4">
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <div>
                 <p className="font-bold">{euro(Number(p.amount))} · {dateIt(p.payment_date)}</p>
-                <p className="text-sm text-slate-600">{p.description||"Pagamento"}{p.payment_method?" · "+p.payment_method:""}</p>
-                {(p.receipt_number||p.receipt_date)&&<p className="text-xs text-slate-500">Scontrino fiscale: {p.receipt_number||"—"}{p.receipt_date?" · "+p.receipt_date:""}</p>}
+                <p className="text-sm text-muted-foreground">{p.description||"Pagamento"}{p.payment_method?" · "+p.payment_method:""}</p>
+                {(p.receipt_number||p.receipt_date)&&<p className="text-xs text-muted-foreground">Scontrino fiscale: {p.receipt_number||"—"}{p.receipt_date?" · "+p.receipt_date:""}</p>}
               </div>
               <div className="text-right text-sm"><div>Pagato cumulativo: <strong>{euro(p.after)}</strong></div><div>Saldo rispetto al contratto V{contract.version_number}: <strong>{euro(p.balance)}</strong></div></div>
             </div>
             <div className="mt-3 flex justify-end">
-              <form action={deletePayment}><input type="hidden" name="couple_id" value={coupleId}/><input type="hidden" name="payment_id" value={p.id}/><button className="rounded-lg border border-red-200 bg-white px-3 py-2 text-sm font-semibold text-red-700">Elimina</button></form>
+              <form action={deletePayment}><input type="hidden" name="couple_id" value={coupleId}/><input type="hidden" name="payment_id" value={p.id}/><button className="rounded-lg border border-red-200 bg-card px-3 py-2 text-sm font-semibold text-red-700">Elimina</button></form>
             </div>
           </div>)}
         </div>
