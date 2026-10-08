@@ -69,9 +69,6 @@ async function deleteTask(fd:FormData) {
   revalidatePath(`/protected/coppie/${coupleId}/attivita`);
   revalidatePath("/protected");
 }
-
-export const instant=false;
-
 export default async function TasksPage({params}:{params:Promise<{id:string}>}) {
   const {id}=await params;
   const {supabase}=await requireAdmin();
