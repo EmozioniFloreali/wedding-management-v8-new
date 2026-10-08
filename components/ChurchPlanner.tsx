@@ -249,38 +249,42 @@ export default function ChurchPlanner({
         if (cancelled) return;
 
         if (cloud.length) {
-          const loaded: PlannerElement[] = cloud.map((row) => ({
-            id: String(row.id),
-            code: String(row.composition_code || row.element_key || "C1"),
-            kind: (row.kind || "composition") as PlannerElement["kind"],
-            x: Number(row.x ?? 50),
-            y: Number(row.y ?? 50),
-            position: String(row.description || ""),
-            description: String(row.description || row.name || ""),
-            quantity: Number(row.quantity ?? 1),
-            size:
-              row.width != null || row.height != null
-                ? `${Number(row.width ?? 10)} × ${Number(row.height ?? 10)}`
-                : "",
-            flowers: Array.isArray(row.flowers)
-              ? row.flowers.join(", ")
-              : String(row.flowers || ""),
-            structure:
-              row.structure && typeof row.structure === "string"
-                ? row.structure
-                : row.structure
-                  ? JSON.stringify(row.structure)
-                  : "",
-            notes: String(row.notes || ""),
-            sourceItemId: row.source_item_id
-              ? String(row.source_item_id)
-              : undefined,
-            boardView: row.view === "inside" || row.view === "outside" ? row.view : "general",
-            width: Number(row.width ?? 10),
-            height: Number(row.height ?? 10),
-            flowerDetails: Array.isArray(row.flowers) ? row.flowers.map((item: any) => typeof item === "object" && item ? { name: String((item as any).name || ""), color: String((item as any).color || ""), quantity: Number((item as any).quantity || 1), notes: String((item as any).notes || "") } : { name: String(item || ""), color: "", quantity: 1, notes: "" }).filter((item: any) => item.name || item.color || item.notes) : [],
-            structureDetails: Array.isArray(row.structure) ? row.structure.map((item: any) => typeof item === "object" && item ? { name: String((item as any).name || ""), color: String((item as any).color || ""), quantity: Number((item as any).quantity || 1), customName: String((item as any).customName || (item as any).custom_name || "") } : { name: String(item || ""), color: "", quantity: 1, customName: "" }).filter((item: any) => item.name || item.color || item.customName) : [],
-          }));
+          const loaded: PlannerElement[] = cloud.map((row) => {
+            const parseList = (value: unknown): any[] => {
+              if (Array.isArray(value)) return value;
+              if (typeof value !== "string" || !value.trim()) return [];
+              try {
+                const parsed = JSON.parse(value);
+                return Array.isArray(parsed) ? parsed : [];
+              } catch {
+                return [];
+              }
+            };
+            const flowers = parseList(row.flowers);
+            const structures = parseList(row.structure);
+            const kind = (row.element_type || "composition") as PlannerElement["kind"];
+            const number = Number(row.element_number || 1);
+            return {
+              id: String(row.id),
+              code: kind === "composition" ? `C${number}` : String(row.element_type || "E").toUpperCase().slice(0, 2) + number,
+              kind,
+              x: Number(row.x ?? 50),
+              y: Number(row.y ?? 50),
+              position: String(row.position_name || ""),
+              description: String(row.description || ""),
+              quantity: Number(row.quantity ?? 1),
+              size: row.width != null || row.height != null ? `${Number(row.width ?? 10)} × ${Number(row.height ?? 10)}` : "",
+              flowers: flowers.map((item: any) => [item.name, item.color, item.quantity ? `Q.tà ${item.quantity}` : "", item.notes].filter(Boolean).join(" · ")).filter(Boolean).join(" | "),
+              structure: structures.map((item: any) => [item.customName || item.name, item.color, item.quantity ? `Q.tà ${item.quantity}` : ""].filter(Boolean).join(" · ")).filter(Boolean).join(" | "),
+              notes: String(row.notes || ""),
+              sourceItemId: row.source_item_id ? String(row.source_item_id) : undefined,
+              boardView: row.view === "inside" || row.view === "outside" ? row.view : "general",
+              width: Number(row.width ?? 10),
+              height: Number(row.height ?? 10),
+              flowerDetails: flowers.map((item: any) => ({ name: String(item.name || ""), color: String(item.color || ""), quantity: Number(item.quantity || 1), notes: String(item.notes || "") })).filter((item: any) => item.name || item.color || item.notes),
+              structureDetails: structures.map((item: any) => ({ name: String(item.name || ""), color: String(item.color || ""), quantity: Number(item.quantity || 1), customName: String(item.customName || item.custom_name || "") })).filter((item: any) => item.name || item.color || item.customName),
+            };
+          });
 
           setElements(loaded);
         } else {
