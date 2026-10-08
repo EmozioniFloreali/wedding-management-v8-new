@@ -82,14 +82,21 @@ export async function generaContratto(formData: FormData) {
     .select("section_key,flowers,structures,other_items,notes")
     .eq("project_id", project.id);
 
+  const cleanSpec = (value: unknown) =>
+    String(value || "")
+      .split(/\r?\n|;/)
+      .map((part) => part.trim())
+      .filter(Boolean)
+      .join(" · ");
+
   const sectionNotes = (sections || [])
     .flatMap((section: any) => {
       const label = categoryLabel(section.section_key);
       const parts = [
-        section.flowers ? `Fiori/colori: ${section.flowers}` : "",
-        section.structures ? `Strutture/materiali: ${section.structures}` : "",
-        section.other_items ? `Altri elementi: ${section.other_items}` : "",
-        section.notes ? `Note: ${section.notes}` : "",
+        section.flowers ? `Fiori/colori: ${cleanSpec(section.flowers)}` : "",
+        section.structures ? `Strutture/materiali: ${cleanSpec(section.structures)}` : "",
+        section.other_items ? `Altri elementi: ${cleanSpec(section.other_items)}` : "",
+        section.notes ? `Note: ${cleanSpec(section.notes)}` : "",
       ].filter(Boolean);
       return parts.length ? [`${label}: ${parts.join(" | ")}`] : [];
     })
