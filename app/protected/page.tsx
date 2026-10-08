@@ -61,7 +61,7 @@ export default async function ProtectedDashboardPage() {
     if (membership?.couple_id) {
       const { data: coupleAccess } = await supabase.from("couples").select("portal_enabled").eq("id", membership.couple_id).maybeSingle();
       if (coupleAccess?.portal_enabled) redirect(`/protected/area-sposi/${membership.couple_id}`);
-      return <main className="min-h-screen bg-slate-50 p-10"><div className="mx-auto max-w-xl rounded-2xl border bg-white p-8 text-center shadow-sm"><div className="text-4xl">🔒</div><h1 className="mt-4 text-2xl font-bold text-slate-900">Area Sposi non disponibile</h1><p className="mt-3 text-slate-600">L accesso all Area Sposi è attualmente disattivato. La gestione del matrimonio rimane esclusivamente a Emozioni Floreali.</p></div></main>;
+      return <main className="min-h-screen bg-background p-10"><div className="mx-auto max-w-xl rounded-2xl border bg-white p-8 text-center shadow-sm"><div className="text-4xl">🔒</div><h1 className="mt-4 text-2xl font-bold text-foreground">Area Sposi non disponibile</h1><p className="mt-3 text-muted-foreground">L accesso all Area Sposi è attualmente disattivato. La gestione del matrimonio rimane esclusivamente a Emozioni Floreali.</p></div></main>;
     }
 
     redirect("/auth/login?error=area_sposi_non_collegata");
@@ -117,50 +117,50 @@ export default async function ProtectedDashboardPage() {
   ];
 
   return (
-    <main className="min-h-screen bg-slate-50">
+    <main className="min-h-screen bg-background">
       <div className="mx-auto max-w-7xl px-5 py-8 md:px-8">
         <header className="mb-8 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-700">Emozioni Floreali → Wedding Management V8</p>
-            <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-900 md:text-4xl">Dashboard</h1>
-            <p className="mt-2 text-slate-600">{profile?.full_name ? `Bentornato, ${profile.full_name}.` : "Panoramica operativa del tuo Wedding Management."}</p>
+            <p className="ef-eyebrow">Emozioni Floreali → Wedding Management V8 NEW</p>
+            <h1 className="mt-2 text-3xl font-bold tracking-tight text-foreground md:text-4xl">Dashboard</h1>
+            <p className="mt-2 text-muted-foreground">{profile?.full_name ? `Bentornato, ${profile.full_name}.` : "Panoramica operativa del tuo Wedding Management."}</p>
           </div>
           <div className="flex flex-wrap gap-3">
-            <Link href="/protected/coppie/nuova" className="rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-slate-800">+ Nuova coppia</Link>
-            <Link href="/protected/notifiche" className="rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50">Notifiche {unreadNotifications ? `(${unreadNotifications})` : ""}</Link>
+            <Link href="/protected/coppie/nuova" className="rounded-xl ef-button-primary">+ Nuova coppia</Link>
+            <Link href="/protected/notifiche" className="rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-secondary/60">Notifiche {unreadNotifications ? `(${unreadNotifications})` : ""}</Link>
           </div>
         </header>
 
         <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {cards.map((card) => (
-            <Link key={card.label} href={card.href} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-              <p className="text-sm font-medium text-slate-500">{card.label}</p>
-              <p className="mt-2 text-3xl font-bold text-slate-900">{card.value}</p>
-              <p className="mt-2 text-sm text-emerald-700">{card.text} ?</p>
+            <Link key={card.label} href={card.href} className="ef-card p-5 hover:-translate-y-0.5">
+              <p className="text-sm font-medium text-muted-foreground">{card.label}</p>
+              <p className="mt-2 text-3xl font-bold text-foreground">{card.value}</p>
+              <p className="mt-2 text-sm text-primary">{card.text} ?</p>
             </Link>
           ))}
         </section>
 
         <section className="mt-6 grid gap-6 lg:grid-cols-[1.35fr_0.65fr]">
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="ef-card p-6">
             <div className="flex items-center justify-between gap-4">
-              <div><h2 className="text-xl font-bold text-slate-900">Prossimi matrimoni</h2><p className="mt-1 text-sm text-slate-500">Gli eventi pi? vicini da tenere sotto controllo.</p></div>
-              <Link href="/protected/calendario" className="text-sm font-semibold text-emerald-700 hover:text-emerald-800">Calendario →</Link>
+              <div><h2 className="text-xl font-bold text-foreground">Prossimi matrimoni</h2><p className="mt-1 text-sm text-muted-foreground">Gli eventi più vicini da tenere sotto controllo.</p></div>
+              <Link href="/protected/calendario" className="text-sm font-semibold text-primary hover:opacity-80">Calendario →</Link>
             </div>
             <div className="mt-5 space-y-3">
               {(weddings || []).map((w: any) => {
                 const c = coupleMap.get(w.couple_id);
-                return <Link key={w.id} href={`/protected/coppie/${w.couple_id}`} className="flex flex-col gap-2 rounded-xl border border-slate-200 p-4 hover:bg-slate-50 md:flex-row md:items-center md:justify-between">
-                  <div><p className="font-semibold text-slate-900">{coupleName(c)}</p><p className="text-sm text-slate-500">{w.venue || w.reception_hall || w.ceremony_location || "Location da definire"}</p></div>
-                  <div className="text-left md:text-right"><p className="font-semibold text-slate-900">{dateIt(w.wedding_date)}</p><p className="text-sm text-slate-500">{w.wedding_time ? String(w.wedding_time).slice(0,5) : "Orario da definire"} → {statusLabel(w.status)}</p></div>
+                return <Link key={w.id} href={`/protected/coppie/${w.couple_id}`} className="flex flex-col gap-2 rounded-xl border border p-4 hover:bg-secondary/60 md:flex-row md:items-center md:justify-between">
+                  <div><p className="font-semibold text-foreground">{coupleName(c)}</p><p className="text-sm text-muted-foreground">{w.venue || w.reception_hall || w.ceremony_location || "Location da definire"}</p></div>
+                  <div className="text-left md:text-right"><p className="font-semibold text-foreground">{dateIt(w.wedding_date)}</p><p className="text-sm text-muted-foreground">{w.wedding_time ? String(w.wedding_time).slice(0,5) : "Orario da definire"} → {statusLabel(w.status)}</p></div>
                 </Link>;
               })}
-              {!weddings?.length && <div className="rounded-xl bg-slate-50 p-5 text-sm text-slate-500">Nessun matrimonio futuro presente.</div>}
+              {!weddings?.length && <div className="rounded-xl bg-secondary/60 p-5 text-sm text-muted-foreground">Nessun matrimonio futuro presente.</div>}
             </div>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 className="text-xl font-bold text-slate-900">Accessi rapidi</h2>
+          <div className="ef-card p-6">
+            <h2 className="text-xl font-bold text-foreground">Accessi rapidi</h2>
             <div className="mt-5 grid gap-3">
               {[
                 ["Coppie", "/protected/coppie", "CRM sposi"],
@@ -169,33 +169,33 @@ export default async function ProtectedDashboardPage() {
                 ["Messaggi", couples?.[0] ? `/protected/coppie/${couples[0].id}/messaggi` : "/protected/coppie", "Comunicazione con gli sposi"],
                 ["Area Sposi", couples?.[0] ? `/protected/area-sposi/${couples[0].id}` : "/protected/area-sposi", "Portale cliente"],
                 ["Notifiche", "/protected/notifiche", "Aggiornamenti e avvisi"],
-              ].map(([label, href, sub]) => <Link key={label} href={href} className="rounded-xl border border-slate-200 px-4 py-3 hover:bg-slate-50"><p className="font-semibold text-slate-900">{label}</p><p className="text-xs text-slate-500">{sub}</p></Link>)}
+              ].map(([label, href, sub]) => <Link key={label} href={href} className="rounded-xl border border px-4 py-3 hover:bg-secondary/60"><p className="font-semibold text-foreground">{label}</p><p className="text-xs text-muted-foreground">{sub}</p></Link>)}
             </div>
           </div>
         </section>
 
         <section className="mt-6 grid gap-6 lg:grid-cols-2">
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <div className="flex items-center justify-between"><div><h2 className="text-xl font-bold text-slate-900">Attività da completare</h2><p className="mt-1 text-sm text-slate-500">Le prossime azioni operative.</p></div><Link href={couples?.[0] ? `/protected/coppie/${couples[0].id}/attivita` : "/protected/coppie"} className="text-sm font-semibold text-emerald-700">Tutte →</Link></div>
+          <div className="ef-card p-6">
+            <div className="flex items-center justify-between"><div><h2 className="text-xl font-bold text-foreground">Attività da completare</h2><p className="mt-1 text-sm text-muted-foreground">Le prossime azioni operative.</p></div><Link href={couples?.[0] ? `/protected/coppie/${couples[0].id}/attivita` : "/protected/coppie"} className="text-sm font-semibold text-primary">Tutte →</Link></div>
             <div className="mt-5 space-y-3">
-              {(tasks || []).map((t: any) => <Link key={t.id} href={couples?.[0] ? `/protected/coppie/${couples[0].id}/attivita` : "/protected/coppie"} className="block rounded-xl border border-slate-200 p-4 hover:bg-slate-50"><div className="flex items-start justify-between gap-3"><p className="font-semibold text-slate-900">{t.title}</p><span className="text-xs font-semibold uppercase text-slate-500">{statusLabel(t.priority)}</span></div><p className="mt-1 text-sm text-slate-500">{coupleName(coupleMap.get(t.couple_id))} → {t.due_date ? dateTimeIt(new Date(`${t.due_date}T${t.due_time || "12:00"}`)) : "Senza scadenza"}</p></Link>)}
-              {!tasks?.length && <div className="rounded-xl bg-slate-50 p-5 text-sm text-slate-500">Nessuna attivit? aperta.</div>}
+              {(tasks || []).map((t: any) => <Link key={t.id} href={couples?.[0] ? `/protected/coppie/${couples[0].id}/attivita` : "/protected/coppie"} className="block rounded-xl border border p-4 hover:bg-secondary/60"><div className="flex items-start justify-between gap-3"><p className="font-semibold text-foreground">{t.title}</p><span className="text-xs font-semibold uppercase text-muted-foreground">{statusLabel(t.priority)}</span></div><p className="mt-1 text-sm text-muted-foreground">{coupleName(coupleMap.get(t.couple_id))} → {t.due_date ? dateTimeIt(new Date(`${t.due_date}T${t.due_time || "12:00"}`)) : "Senza scadenza"}</p></Link>)}
+              {!tasks?.length && <div className="rounded-xl bg-secondary/60 p-5 text-sm text-muted-foreground">Nessuna attività aperta.</div>}
             </div>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <div className="flex items-center justify-between"><div><h2 className="text-xl font-bold text-slate-900">Agenda imminente</h2><p className="mt-1 text-sm text-slate-500">Appuntamenti, sopralluoghi, consegne e montaggi.</p></div><Link href="/protected/calendario" className="text-sm font-semibold text-emerald-700">Agenda →</Link></div>
+          <div className="ef-card p-6">
+            <div className="flex items-center justify-between"><div><h2 className="text-xl font-bold text-foreground">Agenda imminente</h2><p className="mt-1 text-sm text-muted-foreground">Appuntamenti, sopralluoghi, consegne e montaggi.</p></div><Link href="/protected/calendario" className="text-sm font-semibold text-primary">Agenda →</Link></div>
             <div className="mt-5 space-y-3">
-              {(events || []).map((e: any) => <Link key={e.id} href={couples?.[0] ? `/protected/coppie/${couples[0].id}/calendario` : "/protected/coppie"} className="block rounded-xl border border-slate-200 p-4 hover:bg-slate-50"><p className="font-semibold text-slate-900">{e.title}</p><p className="mt-1 text-sm text-slate-500">{dateTimeIt(e.start_at)} → {coupleName(coupleMap.get(e.couple_id))}</p><p className="mt-1 text-xs text-slate-400">{e.location || e.event_type || ""}</p></Link>)}
-              {!events?.length && <div className="rounded-xl bg-slate-50 p-5 text-sm text-slate-500">Nessun appuntamento imminente.</div>}
+              {(events || []).map((e: any) => <Link key={e.id} href={couples?.[0] ? `/protected/coppie/${couples[0].id}/calendario` : "/protected/coppie"} className="block rounded-xl border border p-4 hover:bg-secondary/60"><p className="font-semibold text-foreground">{e.title}</p><p className="mt-1 text-sm text-muted-foreground">{dateTimeIt(e.start_at)} → {coupleName(coupleMap.get(e.couple_id))}</p><p className="mt-1 text-xs text-muted-foreground">{e.location || e.event_type || ""}</p></Link>)}
+              {!events?.length && <div className="rounded-xl bg-secondary/60 p-5 text-sm text-muted-foreground">Nessun appuntamento imminente.</div>}
             </div>
           </div>
         </section>
 
         <section className="mt-6 rounded-2xl border border-emerald-100 bg-emerald-50 p-6">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div><p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">Controllo economico</p><h2 className="mt-1 text-xl font-bold text-slate-900">Valore complessivo dei progetti floreali visualizzati</h2></div>
-            <p className="text-2xl font-bold text-slate-900">? {totalProjectValue.toLocaleString("it-IT", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+            <div><p className="text-xs font-semibold uppercase tracking-wide text-primary">Controllo economico</p><h2 className="mt-1 text-xl font-bold text-foreground">Valore complessivo dei progetti floreali visualizzati</h2></div>
+            <p className="text-2xl font-bold text-foreground">€ {totalProjectValue.toLocaleString("it-IT", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
           </div>
         </section>
       </div>
