@@ -376,7 +376,7 @@ export default async function PreventivoPage({ params }: { params: Promise<{ id:
             <div><label className="mb-1 block text-sm font-semibold">Validità (giorni)</label><input name="validity_days" type="number" min="0" defaultValue={quote?.validity_days ?? 30} className="w-full rounded-xl border px-3 py-3"/></div>
             <div><label className="mb-1 block text-sm font-semibold">Totale progetto €</label><input name="total_amount" defaultValue={quote?.total_amount ?? project.total_amount ?? ""} className="w-full rounded-xl border px-3 py-3"/></div>
             <div><label className="mb-1 block text-sm font-semibold">Acconto €</label><input name="deposit_amount" defaultValue={quote?.deposit_amount ?? 0} className="w-full rounded-xl border px-3 py-3"/></div>
-            <label className="flex items-center gap-2 text-sm font-semibold"><input type="checkbox" name="vat_included" defaultChecked={Number(quote?.vat_rate ?? 10) === 10}/> IVA inclusa</label>
+            <label className="flex items-center gap-2 text-sm font-semibold"><input type="checkbox" name="vat_included" defaultChecked={quote ? Boolean(quote.vat_included) : true}/> IVA inclusa</label>
             <div className="lg:col-span-2"><label className="mb-1 block text-sm font-semibold">Note</label><input name="notes" defaultValue={quote?.notes || ""} className="w-full rounded-xl border px-3 py-3" placeholder="Condizioni, tempi, note commerciali..."/></div>
             <div className="lg:col-span-4 flex flex-col items-end gap-2">
               {quote && uiStatus(quote.status) !== "bozza" && (
