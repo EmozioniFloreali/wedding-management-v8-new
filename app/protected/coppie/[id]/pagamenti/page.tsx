@@ -173,7 +173,7 @@ export default async function PagamentiPage({params,searchParams}:{params:Promis
   return <main className="min-h-screen bg-slate-50">
     <div className="mx-auto max-w-7xl px-6 py-8">
       <Link href={"/protected/coppie/"+coupleId} className="text-sm underline">← Torna alla scheda coppia</Link>
-      <div className="mt-4 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+      <div className="mb-4"><img src="/logo-emozioni-floreali.svg" alt="Emozioni Floreali di Giusy Surace" className="h-auto w-full max-w-[380px]" /></div><div className="mt-4 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div>
           <p className="text-sm font-semibold uppercase tracking-wide text-amber-700">Area professionale riservata</p>
           <h1 className="text-3xl font-bold">Pagamenti e quietanze</h1>
