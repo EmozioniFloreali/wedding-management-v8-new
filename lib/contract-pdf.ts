@@ -21,7 +21,7 @@ function pdfEscape(text:string){
   return winAnsi(text).split("\\").join("\\\\").split("(").join("\\(").split(")").join("\\)");
 }
 function wrap(text:string,max=92){
-  const words=text.split(" ").filter(Boolean);
+  const words=text.replace(/\s+/g," ").trim().split(" ").filter(Boolean);
   const lines:string[]=[];
   let line="";
   for(const w of words){
