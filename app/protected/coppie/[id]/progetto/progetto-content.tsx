@@ -368,10 +368,10 @@ export async function ProgettoFlorealeContent({ params, searchParams }: { params
         <input name="name" defaultValue={project.name} className="rounded-xl border px-4 py-3"/>
         <select name="status" defaultValue={project.status} className="rounded-xl border bg-card px-4 py-3"><option value="draft">Bozza</option><option value="in_progress">In lavorazione</option><option value="approved">Approvato</option><option value="completed">Completato</option><option value="archived">Archiviato</option></select>
         <input name="total_amount" defaultValue={project.total_amount ?? ""} placeholder="Totale progetto €" className="rounded-xl border px-4 py-3"/>
-        <button className="rounded-xl bg-slate-900 px-4 py-3 font-semibold text-white">Salva progetto</button>
+        <button className="ef-button-primary">Salva progetto</button>
         <textarea name="notes" defaultValue={project.notes || ""} placeholder="Note generali..." rows={3} className="rounded-xl border px-4 py-3 md:col-span-4"/>
       </form>
-      <div className="mt-4 rounded-xl border border-blue-200 bg-blue-50 p-4"><p className="text-sm text-blue-900">Il progetto è indipendente da preventivo e contratto. Le modifiche vengono trasferite al preventivo solo quando premi il pulsante seguente.</p><form action={prepareQuoteFromProject} className="mt-3"><input type="hidden" name="project_id" value={project.id}/><input type="hidden" name="couple_id" value={coupleId}/><button className="rounded-xl bg-blue-700 px-5 py-3 font-semibold text-white">Prepara / aggiorna preventivo</button></form></div>
+      <div className="mt-4 rounded-xl border border-primary/20 bg-secondary p-4"><p className="text-sm text-primary">Il progetto è indipendente da preventivo e contratto. Le modifiche vengono trasferite al preventivo solo quando premi il pulsante seguente.</p><form action={prepareQuoteFromProject} className="mt-3"><input type="hidden" name="project_id" value={project.id}/><input type="hidden" name="couple_id" value={coupleId}/><button className="ef-button-primary">Prepara / aggiorna preventivo</button></form></div>
     </section>
 
     <div className="mt-6 grid gap-6">{GENERAL_SECTIONS.map(([key,title]) => renderGeneralSection(key,title))}</div>
