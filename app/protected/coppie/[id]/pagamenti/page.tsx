@@ -131,7 +131,8 @@ async function deletePayment(formData:FormData){
   const paymentId=String(formData.get("payment_id")||"");
   if(!coupleId||!paymentId)return;
   const {data:payment}=await supabase.from("contract_payments").select("id").eq("id",paymentId).maybeSingle();
-  const {data:docs}=await supabase.from("client_documents").select("id,storage_path").eq("category","pagamento").ilike("notes","%"+paymentId+"%");
+  if(!payment)return;
+  const {data:docs}=await supabase.from("client_documents").select("id,storage_path").eq("category","pagamento").ilike("storage_path","%"+paymentId+".pdf");
   if(docs?.length){
     for(const d of docs){
       if(d.storage_path)await supabase.storage.from("client-documents").remove([d.storage_path]);
@@ -159,14 +160,15 @@ export default async function PagamentiPage({params,searchParams}:{params:Promis
     .eq("couple_id",coupleId).order("version_number",{ascending:false});
   const contract=contracts?.[0];
   if(!contract)redirect("/protected/coppie/"+coupleId+"/preventivo");
-
+  const contractIds=(contracts||[]).map(c=>c.id);
   const {data:payments}=await supabase.from("contract_payments")
-    .select("id,payment_date,description,amount,payment_method,notes,receipt_number,receipt_date,created_at")
-    .eq("contract_id",contract.id).order("payment_date",{ascending:true}).order("created_at",{ascending:true});
+    .select("id,contract_id,payment_date,description,amount,payment_method,notes,receipt_number,receipt_date,created_at")
+    .in("contract_id",contractIds).order("payment_date",{ascending:true}).order("created_at",{ascending:true});
   const rows=payments||[];
   const total=Number(contract.total_amount||0);
+  const paidBeforeForLatest=(payments||[]).filter(p=>p.contract_id===contract.id).reduce((s,p)=>s+Number(p.amount||0),0);
   let running=0;
-  const computed=rows.map(p=>{const before=running;running+=Number(p.amount||0);return {...p,before,after:running,balance:Math.max(0,total-running)}});
+  const computed=rows.map(p=>{running+=Number(p.amount||0);return {...p,after:running,balance:Math.max(0,total-running)}});
 
   return <main className="min-h-screen bg-slate-50">
     <div className="mx-auto max-w-7xl px-6 py-8">
@@ -220,7 +222,7 @@ export default async function PagamentiPage({params,searchParams}:{params:Promis
                 <p className="text-sm text-slate-600">{p.description||"Pagamento"}{p.payment_method?" · "+p.payment_method:""}</p>
                 {(p.receipt_number||p.receipt_date)&&<p className="text-xs text-slate-500">Scontrino fiscale: {p.receipt_number||"—"}{p.receipt_date?" · "+p.receipt_date:""}</p>}
               </div>
-              <div className="text-right text-sm"><div>Pagato dopo: <strong>{euro(p.after)}</strong></div><div>Saldo: <strong>{euro(p.balance)}</strong></div></div>
+              <div className="text-right text-sm"><div>Pagato cumulativo: <strong>{euro(p.after)}</strong></div><div>Saldo rispetto al contratto V{contract.version_number}: <strong>{euro(p.balance)}</strong></div></div>
             </div>
             <div className="mt-3 flex justify-end">
               <form action={deletePayment}><input type="hidden" name="couple_id" value={coupleId}/><input type="hidden" name="payment_id" value={p.id}/><button className="rounded-lg border border-red-200 bg-white px-3 py-2 text-sm font-semibold text-red-700">Elimina</button></form>
