@@ -9,11 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Users, Plus, ArrowLeft, CalendarDays } from "lucide-react";
-
-export const instant = false;
-
-export default async function CoppiePage() {
+import { Users, Plus, ArrowLeft, CalendarDays } from "lucide-react";export default async function CoppiePage() {
   const { supabase } = await requireAdmin();
 
   const { data: couples, error } = await supabase
