@@ -163,18 +163,18 @@ export default async function ContrattiPage({
                   <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
                     <div>
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="rounded-full bg-slate-900 px-3 py-1 text-sm font-bold text-white">
+                        <span className="rounded-full bg-primary px-3 py-1 text-sm font-bold text-primary-foreground">
                           Contratto v{contract.version_number}
                         </span>
-                        <span className="rounded-full bg-emerald-100 px-3 py-1 text-sm font-semibold text-primary">
+                        <span className="rounded-full bg-secondary px-3 py-1 text-sm font-semibold text-primary">
                           {statusLabel(quote?.status)}
                         </span>
                         {signed ? (
-                          <span className="rounded-full bg-blue-100 px-3 py-1 text-sm font-semibold text-blue-800">
+                          <span className="rounded-full bg-accent/20 px-3 py-1 text-sm font-semibold text-accent-foreground">
                             Firmato
                           </span>
                         ) : (
-                          <span className="rounded-full bg-amber-100 px-3 py-1 text-sm font-semibold text-amber-800">
+                          <span className="rounded-full bg-secondary px-3 py-1 text-sm font-semibold text-foreground">
                             Non firmato
                           </span>
                         )}
