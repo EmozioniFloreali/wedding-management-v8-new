@@ -12,9 +12,6 @@ import {
   Pencil,
   Phone,
 } from "lucide-react";
-
-export const instant = false;
-
 type PageProps = {
   params: Promise<{ id: string }>;
 };
