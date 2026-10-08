@@ -12,17 +12,18 @@ const STATUS = [
 ] as const;
 
 function uiStatus(status: string | null | undefined) {
-  if (status === "sent" || status === "presentato") return "presentato";
-  if (status === "rejected" || status === "rifiutato_da_modificare") return "rifiutato_da_modificare";
-  if (status === "accepted" || status === "confermato") return "confermato";
+  if (status === "presentato") return "presentato";
+  if (status === "rifiutato_da_modificare") return "rifiutato_da_modificare";
+  if (status === "confermato") return "confermato";
   return "bozza";
 }
 
 function dbStatus(status: string) {
-  if (status === "presentato" || status === "in_attesa_conferma") return "sent";
-  if (status === "rifiutato_da_modificare") return "rejected";
-  if (status === "confermato") return "accepted";
-  return "draft";
+  if (status === "presentato") return "presentato";
+  if (status === "in_attesa_conferma") return "in_attesa_conferma";
+  if (status === "rifiutato_da_modificare") return "rifiutato_da_modificare";
+  if (status === "confermato") return "confermato";
+  return "bozza";
 }
 
 const CATEGORIES = [
@@ -59,24 +60,31 @@ async function getAdmin() {
 }
 
 async function syncProjectSelectionsToQuote(supabase: any, projectId: string, quoteId: string) {
-  const { data: selectedItems } = await supabase.from("floral_project_items")
+  const { data: selectedItems, error: selectError } = await supabase
+    .from("floral_project_items")
     .select("id,category,name,description,quantity,unit,notes,sort_order,include_in_quote")
     .eq("project_id", projectId)
     .eq("include_in_quote", true)
     .order("sort_order", { ascending: true });
 
-  await supabase.from("quote_items")
+  if (selectError) throw new Error(selectError.message);
+
+  const { error: deleteError } = await supabase
+    .from("quote_items")
     .delete()
     .eq("quote_id", quoteId)
-    .like("notes", "floral_project_item_id:%");
+    .not("floral_project_item_id", "is", null);
+
+  if (deleteError) throw new Error(deleteError.message);
 
   const rows = (selectedItems || []).map((item: any, index: number) => ({
     quote_id: quoteId,
-    area: item.category || null,
+    floral_project_item_id: item.id,
+    area: item.category || "progetto_floreale",
     description: item.description ? `${item.name} — ${item.description}` : item.name,
     quantity: item.quantity ?? 1,
     unit: item.unit || "pz",
-    notes: `floral_project_item_id:${item.id}${item.notes ? ` — ${item.notes}` : ""}`,
+    notes: item.notes || null,
     sort_order: index + 1,
   }));
 
@@ -94,7 +102,7 @@ async function assertQuoteDraft(supabase: any, quoteId: string) {
     .maybeSingle();
   if (error) throw new Error(error.message);
   if (!quote) throw new Error("Preventivo non trovato.");
-  if (quote.status !== "draft") {
+  if (quote.status !== "bozza") {
     throw new Error("Il preventivo non è più modificabile perché è stato presentato. Modifica il Progetto Floreale e crea una nuova versione del preventivo.");
   }
   return quote;
@@ -103,79 +111,111 @@ async function assertQuoteDraft(supabase: any, quoteId: string) {
 async function salvaPreventivo(formData: FormData) {
   "use server";
   const { supabase, user } = await getAdmin();
+
   const coupleId = value(formData, "couple_id");
   const projectId = value(formData, "project_id");
+  const weddingId = value(formData, "wedding_id") || null;
   const quoteId = value(formData, "quote_id");
-  const statusUi = value(formData, "status") || "bozza";
-  const status = dbStatus(statusUi);
+  const status = dbStatus(value(formData, "status") || "bozza");
+  const title = value(formData, "title") || "Preventivo Progetto Floreale";
   const validityDays = Math.max(0, Math.round(amount(formData, "validity_days") || 30));
   const notes = value(formData, "notes");
   const totalAmount = amount(formData, "total_amount");
   const depositAmount = Math.min(totalAmount, Math.max(0, amount(formData, "deposit_amount")));
   const vatIncluded = value(formData, "vat_included") === "on";
-  const vatRate = vatIncluded ? 10 : 0;
-  const taxableAmount = vatIncluded ? Math.round((totalAmount / 1.1) * 100) / 100 : totalAmount;
-  const vatAmount = Math.round((totalAmount - taxableAmount) * 100) / 100;
-  const validUntil = new Date(Date.now() + validityDays * 86400000).toISOString().slice(0, 10);
 
   if (!coupleId || !projectId) return;
 
+  let existingQuote: any = null;
   if (quoteId) {
-    const { data: existingQuote, error: existingQuoteError } = await supabase
+    const { data, error } = await supabase
       .from("quotes")
-      .select("id,status")
+      .select("id,status,version_number,created_at,presented_at,confirmed_at")
       .eq("id", quoteId)
       .maybeSingle();
-    if (existingQuoteError) throw new Error(existingQuoteError.message);
-    if (!existingQuote) throw new Error("Preventivo non trovato.");
 
-    // Recupero controllato: se il precedente tentativo di presentazione
-    // ha già portato lo stato a "sent" ma la generazione del contratto
-    // è fallita, consentiamo di ripetere esclusivamente la generazione.
-    if (existingQuote.status !== "draft") {
-      if (statusUi === "presentato" && existingQuote.status === "sent") {
-        await generaContratto((() => {
-          const fd = new FormData();
-          fd.set("couple_id", coupleId);
-          return fd;
-        })());
-        return;
-      }
-      throw new Error("Il preventivo non è più modificabile perché è stato presentato. Modifica il Progetto Floreale e crea una nuova versione del preventivo.");
+    if (error) throw new Error(error.message);
+    if (!data) throw new Error("Preventivo non trovato.");
+    existingQuote = data;
+
+    // Un preventivo già presentato/confermato è una versione storica.
+    // Non lo sovrascriviamo e non rigeneriamo il contratto ad ogni click.
+    if (existingQuote.status !== "bozza") {
+      revalidatePath(`/protected/coppie/${coupleId}/preventivo`);
+      return;
     }
   }
 
-  const payload = {
-    couple_id: coupleId,
-    project_id: projectId,
-    status,
-    valid_until: validUntil,
-    notes: notes || null,
-    discount_type: "percent",
-    discount_value: 0,
-    vat_rate: vatRate,
-    subtotal: taxableAmount,
-    discount_amount: 0,
-    taxable_amount: taxableAmount,
-    vat_amount: vatAmount,
-    total_amount: totalAmount,
-    deposit_required: depositAmount,
-    created_by: user.id,
-    updated_at: new Date().toISOString(),
-  };
+  const now = new Date().toISOString();
+  const presentedAt = status === "presentato" ? now : null;
+  const confirmedAt = status === "confermato" ? now : null;
 
-  const { data: quote, error } = quoteId
-    ? await supabase.from("quotes").update(payload).eq("id", quoteId).select("id").single()
-    : await supabase.from("quotes").insert(payload).select("id").single();
+  let quote: any;
+  if (existingQuote) {
+    const { data, error } = await supabase
+      .from("quotes")
+      .update({
+        wedding_id: weddingId,
+        title,
+        validity_days: validityDays,
+        notes: notes || null,
+        total_amount: totalAmount,
+        deposit_amount: depositAmount,
+        vat_included: vatIncluded,
+        presented_at: presentedAt,
+        confirmed_at: confirmedAt,
+        updated_at: now,
+      })
+      .eq("id", existingQuote.id)
+      .select("id")
+      .single();
 
-  if (error || !quote) throw new Error(error?.message || "Impossibile salvare il preventivo");
+    if (error || !data) throw new Error(error?.message || "Impossibile aggiornare il preventivo.");
+    quote = data;
+  } else {
+    const { data: latest } = await supabase
+      .from("quotes")
+      .select("version_number")
+      .eq("couple_id", coupleId)
+      .order("version_number", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    const versionNumber = Number(latest?.version_number || 0) + 1;
+
+    const { data, error } = await supabase
+      .from("quotes")
+      .insert({
+        couple_id: coupleId,
+        wedding_id: weddingId,
+        version_number: versionNumber,
+        status,
+        title,
+        validity_days: validityDays,
+        notes: notes || null,
+        total_amount: totalAmount,
+        deposit_amount: depositAmount,
+        vat_included: vatIncluded,
+        created_by: user.id,
+        presented_at: presentedAt,
+        confirmed_at: confirmedAt,
+      })
+      .select("id")
+      .single();
+
+    if (error || !data) throw new Error(error?.message || "Impossibile creare il preventivo.");
+    quote = data;
+  }
 
   await syncProjectSelectionsToQuote(supabase, projectId, quote.id);
   revalidatePath(`/protected/coppie/${coupleId}/preventivo`);
   revalidatePath(`/protected/coppie/${coupleId}/progetto`);
-  if (statusUi === "presentato") {
+
+  // Il contratto viene generato una sola volta, al passaggio da bozza a presentato.
+  if (status === "presentato") {
     const contractForm = new FormData();
     contractForm.set("couple_id", coupleId);
+    contractForm.set("quote_id", quote.id);
     await generaContratto(contractForm);
   }
 }
@@ -285,7 +325,7 @@ export default async function PreventivoPage({ params }: { params: Promise<{ id:
 
   const coupleName = [couple.partner1_first_name, couple.partner1_last_name, couple.partner2_first_name, couple.partner2_last_name].filter(Boolean).join(" ");
   const total = Number(quote?.total_amount ?? project.total_amount ?? 0);
-  const deposit = Number(quote?.deposit_required ?? 0);
+  const deposit = Number(quote?.deposit_amount ?? 0);
   const balance = Math.max(0, total - deposit);
 
   return (
@@ -333,12 +373,22 @@ export default async function PreventivoPage({ params }: { params: Promise<{ id:
             <input type="hidden" name="wedding_id" value={wedding?.id || ""}/>
             <div><label className="mb-1 block text-sm font-semibold">Titolo</label><input name="title" defaultValue={"Preventivo Progetto Floreale"} className="w-full rounded-xl border px-3 py-3"/></div>
             <div><label className="mb-1 block text-sm font-semibold">Stato</label><select name="status" defaultValue={uiStatus(quote?.status)} className="w-full rounded-xl border px-3 py-3">{STATUS.filter(([v]) => v !== "confermato").map(([v,l])=><option key={v} value={v}>{l}</option>)}</select></div>
-            <div><label className="mb-1 block text-sm font-semibold">Validità (giorni)</label><input name="validity_days" type="number" min="0" defaultValue={quote?.valid_until ? Math.max(0, Math.round((new Date(quote.valid_until).getTime() - new Date(quote.created_at).getTime()) / 86400000)) : 30} className="w-full rounded-xl border px-3 py-3"/></div>
+            <div><label className="mb-1 block text-sm font-semibold">Validità (giorni)</label><input name="validity_days" type="number" min="0" defaultValue={quote?.validity_days ?? 30} className="w-full rounded-xl border px-3 py-3"/></div>
             <div><label className="mb-1 block text-sm font-semibold">Totale progetto €</label><input name="total_amount" defaultValue={quote?.total_amount ?? project.total_amount ?? ""} className="w-full rounded-xl border px-3 py-3"/></div>
-            <div><label className="mb-1 block text-sm font-semibold">Acconto €</label><input name="deposit_amount" defaultValue={quote?.deposit_required ?? 0} className="w-full rounded-xl border px-3 py-3"/></div>
+            <div><label className="mb-1 block text-sm font-semibold">Acconto €</label><input name="deposit_amount" defaultValue={quote?.deposit_amount ?? 0} className="w-full rounded-xl border px-3 py-3"/></div>
             <label className="flex items-center gap-2 text-sm font-semibold"><input type="checkbox" name="vat_included" defaultChecked={Number(quote?.vat_rate ?? 10) === 10}/> IVA inclusa</label>
             <div className="lg:col-span-2"><label className="mb-1 block text-sm font-semibold">Note</label><input name="notes" defaultValue={quote?.notes || ""} className="w-full rounded-xl border px-3 py-3" placeholder="Condizioni, tempi, note commerciali..."/></div>
-            <div className="lg:col-span-4 flex justify-end"><button className="rounded-xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white">Salva preventivo e aggiorna voci</button></div>
+            <div className="lg:col-span-4 flex flex-col items-end gap-2">
+              {quote && uiStatus(quote.status) !== "bozza" && (
+                <p className="text-xs text-amber-700">Questa versione è storica e non è più modificabile. Modifica il Progetto Floreale per preparare una nuova versione.</p>
+              )}
+              <button
+                disabled={Boolean(quote && uiStatus(quote.status) !== "bozza")}
+                className="rounded-xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                Salva preventivo e aggiorna voci
+              </button>
+            </div>
           </form>
         </section>
 
@@ -373,7 +423,7 @@ export default async function PreventivoPage({ params }: { params: Promise<{ id:
               <div className="flex justify-between"><span>Totale complessivo</span><strong>{money(total)}</strong></div>
               <div className="flex justify-between"><span>Acconto</span><strong>{money(deposit)}</strong></div>
               <div className="flex justify-between border-t pt-3 text-lg"><span>Saldo</span><strong>{money(balance)}</strong></div>
-              <p className="pt-2 text-xs text-slate-500">{Number(quote?.vat_rate ?? 0) === 10 ? "IVA inclusa nel totale." : "IVA non inclusa nel totale."}</p>
+              <p className="pt-2 text-xs text-slate-500">{Boolean(quote?.vat_included) ? "IVA inclusa nel totale." : "IVA non inclusa nel totale."}</p>
             </div>
           </div>
           <div className="rounded-2xl border bg-white p-6 shadow-sm">
