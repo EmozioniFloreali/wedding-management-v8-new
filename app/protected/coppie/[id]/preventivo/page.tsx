@@ -72,7 +72,6 @@ async function syncProjectSelectionsToQuote(supabase: any, projectId: string, qu
 
   const rows = (selectedItems || []).map((item: any, index: number) => ({
     quote_id: quoteId,
-    floral_project_item_id: item.id,
     area: item.category || null,
     description: item.description ? `${item.name} — ${item.description}` : item.name,
     quantity: item.quantity ?? 1,
@@ -107,7 +106,6 @@ async function salvaPreventivo(formData: FormData) {
   const coupleId = value(formData, "couple_id");
   const projectId = value(formData, "project_id");
   const quoteId = value(formData, "quote_id");
-  const weddingId = value(formData, "wedding_id") || null;
   const statusUi = value(formData, "status") || "bozza";
   const status = dbStatus(statusUi);
   const validityDays = Math.max(0, Math.round(amount(formData, "validity_days") || 30));
@@ -128,15 +126,19 @@ async function salvaPreventivo(formData: FormData) {
 
   const payload = {
     couple_id: coupleId,
-    wedding_id: weddingId,
+    project_id: projectId,
     status,
-    presented_at: status === "presentato" || status === "in_attesa_conferma" ? new Date().toISOString() : null,
-    title,
-    validity_days: validityDays,
+    valid_until: validUntil,
     notes: notes || null,
+    discount_type: "percent",
+    discount_value: 0,
+    vat_rate: vatRate,
+    subtotal: taxableAmount,
+    discount_amount: 0,
+    taxable_amount: taxableAmount,
+    vat_amount: vatAmount,
     total_amount: totalAmount,
-    deposit_amount: depositAmount,
-    vat_included: vatIncluded,
+    deposit_required: depositAmount,
     created_by: user.id,
     updated_at: new Date().toISOString(),
   };
