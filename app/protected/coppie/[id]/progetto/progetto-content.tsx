@@ -284,49 +284,49 @@ export async function ProgettoFlorealeContent({ params, searchParams }: { params
 
   const renderGeneralSection = (key: string, title: string) => {
     const section = sectionMap.get(key);
-    return <section key={key} className="rounded-2xl border bg-white p-6 shadow-sm">
-      <h2 className="text-xl font-bold">{title}</h2>
-      <p className="mt-1 text-sm text-slate-500">Dati generali validi per tutte le composizioni di questa sezione.</p>
+    return <section key={key} className="rounded-2xl border bg-card p-6 shadow-sm">
+      <h2 className="text-xl font-semibold tracking-tight">{title}</h2>
+      <p className="mt-1 text-sm text-muted-foreground">Dati generali validi per tutte le composizioni di questa sezione.</p>
       <form action={saveSection} className="mt-4 grid gap-4">
         <input type="hidden" name="project_id" value={project.id}/>
         <input type="hidden" name="couple_id" value={coupleId}/>
         <input type="hidden" name="section_key" value={key}/>
-        <label className="text-sm font-semibold text-slate-700">Fiori da usare o scelti (inserimento libero: fiore + colore)
+        <label className="text-sm font-semibold text-foreground">Fiori da usare o scelti (inserimento libero: fiore + colore)
           <textarea name="flowers" defaultValue={section?.flowers || ""} rows={3} placeholder="Es. Rose bianche; Ortensie avorio; Eucalipto..." className="mt-2 w-full rounded-xl border px-4 py-3"/>
         </label>
-        <label className="text-sm font-semibold text-slate-700">Strutture da utilizzare o scelte (inserimento libero)
+        <label className="text-sm font-semibold text-foreground">Strutture da utilizzare o scelte (inserimento libero)
           <textarea name="structures" defaultValue={section?.structures || ""} rows={3} placeholder="Es. Candelabri; vasi; supporti..." className="mt-2 w-full rounded-xl border px-4 py-3"/>
         </label>
-        <label className="text-sm font-semibold text-slate-700">Note
+        <label className="text-sm font-semibold text-foreground">Note
           <textarea name="notes" defaultValue={section?.notes || ""} rows={2} className="mt-2 w-full rounded-xl border px-4 py-3"/>
         </label>
-        <button className="justify-self-start rounded-xl bg-slate-900 px-5 py-3 font-semibold text-white">Salva dati sezione</button>
+        <button className="justify-self-start rounded-xl ef-button-primary">Salva dati sezione</button>
       </form>
     </section>;
   };
 
   const renderCompositions = (key: string, title: string) => {
     const sectionItems = itemList.filter(i => i.category === key);
-    return <section key={key} className="rounded-2xl border bg-white p-6 shadow-sm">
-      <h2 className="text-xl font-bold">{title}</h2>
-      <p className="mt-1 text-sm text-slate-500">Qui inserisci solo le composizioni, senza ripetere fiori e strutture già definiti sopra.</p>
+    return <section key={key} className="rounded-2xl border bg-card p-6 shadow-sm">
+      <h2 className="text-xl font-semibold tracking-tight">{title}</h2>
+      <p className="mt-1 text-sm text-muted-foreground">Qui inserisci solo le composizioni, senza ripetere fiori e strutture già definiti sopra.</p>
       <form action={addComposition} className="mt-4 grid gap-3 md:grid-cols-5">
         <input type="hidden" name="project_id" value={project.id}/><input type="hidden" name="couple_id" value={coupleId}/><input type="hidden" name="category" value={key}/>
-        <input required name="name" placeholder="Nome composizione" className="rounded-lg border px-3 py-2"/>
-        <input name="description" placeholder="Descrizione" className="rounded-lg border px-3 py-2"/>
-        <input name="quantity" type="number" min="1" defaultValue="1" className="rounded-lg border px-3 py-2"/>
-        <input name="unit" defaultValue="pz" className="rounded-lg border px-3 py-2"/>
-        <button className="rounded-lg bg-slate-900 px-4 py-2 font-semibold text-white">+ Aggiungi</button>
+        <input required name="name" placeholder="Nome composizione" className="rounded-xl border bg-background px-3 py-2 transition focus:outline-none focus:ring-2 focus:ring-ring"/>
+        <input name="description" placeholder="Descrizione" className="rounded-xl border bg-background px-3 py-2 transition focus:outline-none focus:ring-2 focus:ring-ring"/>
+        <input name="quantity" type="number" min="1" defaultValue="1" className="rounded-xl border bg-background px-3 py-2 transition focus:outline-none focus:ring-2 focus:ring-ring"/>
+        <input name="unit" defaultValue="pz" className="rounded-xl border bg-background px-3 py-2 transition focus:outline-none focus:ring-2 focus:ring-ring"/>
+        <button className="rounded-lg ef-button-primary">+ Aggiungi</button>
       </form>
       <div className="mt-5 space-y-3">
-        {sectionItems.map(item => <div key={item.id} className="rounded-xl border bg-slate-50 p-4">
+        {sectionItems.map(item => <div key={item.id} className="rounded-xl border bg-background p-4">
           <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-            <div><h3 className="font-bold">{item.name}</h3>{item.description && <p className="text-sm text-slate-600">{item.description}</p>}<p className="text-sm text-slate-500">Quantità: {item.quantity} {item.unit}</p></div>
+            <div><h3 className="font-bold">{item.name}</h3>{item.description && <p className="text-sm text-muted-foreground">{item.description}</p>}<p className="text-sm text-muted-foreground">Quantità: {item.quantity} {item.unit}</p></div>
             <form action={confirmItem} className="flex items-center gap-2">
               <input type="hidden" name="couple_id" value={coupleId}/><input type="hidden" name="item_id" value={item.id}/>
               <input id={`confirm-${item.id}`} type="checkbox" name="selected" defaultChecked={item.include_in_quote} className="h-5 w-5"/>
               <label htmlFor={`confirm-${item.id}`} className="text-sm font-semibold">Inserisci nel preventivo</label>
-              <button className="rounded-lg border bg-white px-3 py-2 text-sm font-semibold">Salva</button>
+              <button className="rounded-lg border bg-card px-3 py-2 text-sm font-semibold">Salva</button>
             </form>
           </div>
         </div>)}
@@ -336,37 +336,37 @@ export async function ProgettoFlorealeContent({ params, searchParams }: { params
 
   const renderPresetSection = (title: string, category: string, options: readonly (readonly [string,string])[]) => {
     const section = sectionMap.get(category);
-    return <section className="rounded-2xl border bg-white p-6 shadow-sm">
-      <h2 className="text-xl font-bold">{title}</h2>
-      <p className="mt-1 text-sm text-slate-500">Spunta solo ciò che è stato effettivamente scelto dalla sposa. La selezione verrà trasferita nel preventivo quando prepari o aggiorni il preventivo.</p>
+    return <section className="rounded-2xl border bg-card p-6 shadow-sm">
+      <h2 className="text-xl font-semibold tracking-tight">{title}</h2>
+      <p className="mt-1 text-sm text-muted-foreground">Spunta solo ciò che è stato effettivamente scelto dalla sposa. La selezione verrà trasferita nel preventivo quando prepari o aggiorni il preventivo.</p>
       <div className="mt-5 space-y-4">
         {options.map(([serviceKey, name]) => {
           const item = itemList.find(i => i.service_key === serviceKey);
-          return <form key={serviceKey} action={savePreset} className="rounded-xl border bg-slate-50 p-4">
+          return <form key={serviceKey} action={savePreset} className="rounded-xl border bg-background p-4">
             <input type="hidden" name="project_id" value={project.id}/><input type="hidden" name="couple_id" value={coupleId}/>
             <input type="hidden" name="category" value={category}/><input type="hidden" name="service_key" value={serviceKey}/><input type="hidden" name="name" value={name}/>
             <div className="grid gap-3 md:grid-cols-[auto_1fr_120px_auto] md:items-center">
               <input type="checkbox" name="selected" defaultChecked={!!item?.include_in_quote} className="h-5 w-5"/>
               <div className="font-semibold">{name}</div>
-              <input name="quantity" type="number" min="1" defaultValue={item?.quantity || 1} className="rounded-lg border px-3 py-2" aria-label={`Quantità ${name}`}/>
-              <button className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white">Salva scelta</button>
+              <input name="quantity" type="number" min="1" defaultValue={item?.quantity || 1} className="rounded-xl border bg-background px-3 py-2 transition focus:outline-none focus:ring-2 focus:ring-ring" aria-label={`Quantità ${name}`}/>
+              <button className="rounded-lg ef-button-primary">Salva scelta</button>
             </div>
-            <input name="description" defaultValue={item?.description || ""} placeholder="Descrizione / dettagli personalizzati" className="mt-3 w-full rounded-lg border px-3 py-2"/>
+            <input name="description" defaultValue={item?.description || ""} placeholder="Descrizione / dettagli personalizzati" className="mt-3 w-full rounded-xl border bg-background px-3 py-2 transition focus:outline-none focus:ring-2 focus:ring-ring"/>
           </form>;
         })}
       </div>
     </section>;
   };
 
-  return <main className="min-h-screen bg-slate-50">{notice && <div className="mx-auto max-w-7xl px-6 pt-6"><div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 font-semibold text-emerald-800">✓ {notice}</div></div>}<div className="mx-auto max-w-7xl px-6 py-8">
-    <div className="mb-8"><Link href={`/protected/coppie/${coupleId}`} className="text-sm underline">← Torna alla scheda coppia</Link><h1 className="mt-4 text-3xl font-bold">Progetto floreale</h1><p className="mt-1 text-slate-600">{coupleName}</p></div>
+  return <main className="min-h-screen bg-background">{notice && <div className="mx-auto max-w-7xl px-6 pt-6"><div className="rounded-2xl border border-primary/20 bg-secondary px-4 py-3 font-semibold text-primary">✓ {notice}</div></div>}<div className="mx-auto max-w-7xl px-5 py-8 md:px-8">
+    <div className="mb-8"><Link href={`/protected/coppie/${coupleId}`} className="text-sm underline">← Torna alla scheda coppia</Link><h1 className="mt-4 text-3xl font-semibold tracking-tight">Progetto floreale</h1><p className="mt-1 text-muted-foreground">{coupleName}</p></div>
 
-    <section className="rounded-2xl border bg-white p-6 shadow-sm">
-      <h2 className="text-xl font-bold">Dati del progetto</h2>
+    <section className="rounded-2xl border bg-card p-6 shadow-sm">
+      <h2 className="text-xl font-semibold tracking-tight">Dati del progetto</h2>
       <form action={saveProject} className="mt-5 grid gap-4 md:grid-cols-4">
         <input type="hidden" name="project_id" value={project.id}/><input type="hidden" name="couple_id" value={coupleId}/>
         <input name="name" defaultValue={project.name} className="rounded-xl border px-4 py-3"/>
-        <select name="status" defaultValue={project.status} className="rounded-xl border bg-white px-4 py-3"><option value="draft">Bozza</option><option value="in_progress">In lavorazione</option><option value="approved">Approvato</option><option value="completed">Completato</option><option value="archived">Archiviato</option></select>
+        <select name="status" defaultValue={project.status} className="rounded-xl border bg-card px-4 py-3"><option value="draft">Bozza</option><option value="in_progress">In lavorazione</option><option value="approved">Approvato</option><option value="completed">Completato</option><option value="archived">Archiviato</option></select>
         <input name="total_amount" defaultValue={project.total_amount ?? ""} placeholder="Totale progetto €" className="rounded-xl border px-4 py-3"/>
         <button className="rounded-xl bg-slate-900 px-4 py-3 font-semibold text-white">Salva progetto</button>
         <textarea name="notes" defaultValue={project.notes || ""} placeholder="Note generali..." rows={3} className="rounded-xl border px-4 py-3 md:col-span-4"/>
@@ -379,7 +379,7 @@ export async function ProgettoFlorealeContent({ params, searchParams }: { params
     <div className="mt-6 grid gap-6">{renderPresetSection("Complementi floreali","complementi_floreali",COMPLEMENTS)}{renderPresetSection("Bouquet della sposa","bouquet_sposa",BOUQUETS)}{renderPresetSection("Servizi aggiuntivi","servizi_aggiuntivi",SERVICES)}</div>
 
     <section className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-6">
-      <h2 className="text-xl font-bold text-amber-950">Regola economica</h2>
+      <h2 className="text-xl font-semibold tracking-tight text-amber-950">Regola economica</h2>
       <p className="mt-2 text-sm text-amber-900">Il progetto non assegna prezzi alle singole composizioni. Il totale economico resta unico. Le voci selezionate per il preventivo saranno la base della proposta economica; il contratto viene generato automaticamente quando il preventivo viene presentato, senza attendere la conferma della coppia.</p>
     </section>
   </div></main>;
