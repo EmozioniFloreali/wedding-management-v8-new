@@ -96,7 +96,7 @@ export async function generaContratto(formData: FormData) {
 
   const { data: quote } = await supabase
     .from("quotes")
-    .select("id,status,title,total_amount,deposit_amount,vat_included,notes,created_at")
+    .select("id,status,total_amount,deposit_required,vat_rate,notes,created_at")
     .eq("couple_id", coupleId)
     .order("created_at", { ascending: false })
     .limit(1)
@@ -111,11 +111,11 @@ export async function generaContratto(formData: FormData) {
       .order("sort_order", { ascending: true });
 
     const total = moneyNumber(quote.total_amount);
-    const deposit = Math.min(total, Math.max(0, moneyNumber(quote.deposit_amount)));
+    const deposit = Math.min(total, Math.max(0, moneyNumber(quote.deposit_required)));
 
     quoteData = {
       status: quote.status,
-      vatRate: quote.vat_included ? 10 : 0,
+      vatRate: moneyNumber(quote.vat_rate),
       total,
       deposit,
       balance: Math.max(0, total - deposit),
