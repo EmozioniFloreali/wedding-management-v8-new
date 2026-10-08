@@ -97,6 +97,7 @@ export default async function MatrimonioPage({
   params,
   searchParams,
 }: PageProps) {
+  await requireAdmin();
   const { id } = await params;
   const { error } = await searchParams;
 
