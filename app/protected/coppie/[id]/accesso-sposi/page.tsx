@@ -57,9 +57,9 @@ async function AccessoSposiContent({ params, searchParams }: {
   ].filter(Boolean).join(" ");
 
   return (
-    <main className="min-h-screen bg-slate-50">
+    <main className="min-h-screen bg-background">
       <div className="mx-auto max-w-4xl px-6 py-10">
-        <div className="mb-6 flex flex-wrap items-center gap-2 text-sm text-slate-500">
+        <div className="mb-6 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
           <Link href="/protected/coppie">Coppie</Link>
           <span>/</span>
           <Link href={`/protected/coppie/${id}`}>{name}</Link>
@@ -67,15 +67,15 @@ async function AccessoSposiContent({ params, searchParams }: {
           <span>Accesso Area Sposi</span>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-7 shadow-sm">
-          <h1 className="text-3xl font-bold text-slate-900">Accesso Area Sposi</h1>
-          <p className="mt-2 text-slate-600">
+        <div className="rounded-2xl border border bg-card p-7 shadow-sm">
+          <h1 className="text-3xl font-bold text-foreground">Accesso Area Sposi</h1>
+          <p className="mt-2 text-muted-foreground">
             Decidi se questa coppia può accedere alle proprie credenziali e interagire con l&apos;area privata.
             Se l&apos;accesso è disattivato, la gestione resta interamente di tua esclusiva competenza.
           </p>
 
           {saved === "1" && (
-            <div className="mt-5 rounded-xl bg-emerald-50 p-4 text-sm font-semibold text-emerald-800">
+            <div className="mt-5 rounded-xl bg-secondary p-4 text-sm font-semibold text-primary">
               ✓ Impostazione salvata correttamente.
             </div>
           )}
@@ -83,11 +83,11 @@ async function AccessoSposiContent({ params, searchParams }: {
           <div className="mt-6 rounded-2xl border p-5">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div>
-                <div className="font-semibold text-slate-900">{name}</div>
-                {couple.email && <div className="mt-1 text-sm text-slate-500">{couple.email}</div>}
+                <div className="font-semibold text-foreground">{name}</div>
+                {couple.email && <div className="mt-1 text-sm text-muted-foreground">{couple.email}</div>}
                 <div className="mt-2 text-sm">
                   Stato attuale:{" "}
-                  <strong className={couple.portal_enabled ? "text-emerald-700" : "text-slate-600"}>
+                  <strong className={couple.portal_enabled ? "text-primary" : "text-muted-foreground"}>
                     {couple.portal_enabled ? "Accesso sposi attivo" : "Gestione esclusivamente professionale"}
                   </strong>
                 </div>
@@ -110,10 +110,10 @@ async function AccessoSposiContent({ params, searchParams }: {
           </div>
 
           <div className="mt-6 flex flex-wrap gap-3">
-            <Link href={`/protected/coppie/${id}`} className="rounded-xl border bg-white px-5 py-3 font-semibold">
+            <Link href={`/protected/coppie/${id}`} className="ef-card px-5 py-3 font-semibold">
               Torna alla scheda coppia
             </Link>
-            <Link href="/protected/coppie" className="rounded-xl border bg-white px-5 py-3 font-semibold">
+            <Link href="/protected/coppie" className="ef-card px-5 py-3 font-semibold">
               Elenco coppie
             </Link>
           </div>
@@ -134,8 +134,8 @@ export default function AccessoSposiPage({
   return (
     <Suspense
       fallback={
-        <main className="min-h-screen bg-slate-50 p-10">
-          <div className="mx-auto max-w-4xl rounded-2xl border bg-white p-7">
+        <main className="min-h-screen bg-background p-10">
+          <div className="mx-auto max-w-4xl ef-card p-7">
             Caricamento…
           </div>
         </main>
