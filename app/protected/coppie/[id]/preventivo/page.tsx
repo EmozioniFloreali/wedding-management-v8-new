@@ -118,6 +118,7 @@ async function salvaPreventivo(formData: FormData) {
     couple_id: coupleId,
     wedding_id: weddingId,
     status,
+    presented_at: status === "presentato" || status === "in_attesa_conferma" ? new Date().toISOString() : null,
     title,
     validity_days: validityDays,
     notes: notes || null,
