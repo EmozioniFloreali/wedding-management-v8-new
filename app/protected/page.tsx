@@ -35,9 +35,6 @@ function statusLabel(value: string | null | undefined) {
   };
   return map[value || ""] || value || "Altro";
 }
-
-export const instant = false
-
 export default async function ProtectedDashboardPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
