@@ -97,22 +97,23 @@ export function buildContractPdf(data:ContractData):Uint8Array{
   const pageIds:number[]=[];
   for(let start=0;start<lines.length;start+=34){
     const pg=lines.slice(start,start+34);
-    let stream="";
-    stream+="q 0.36 0.44 0.21 rg 48 806 499 4 re f Q\n";
-    stream+="q 0.82 0.05 0.28 rg 48 54 499 1 re f Q\n";
+    let graphics="";
+    graphics+="q 0.36 0.44 0.21 rg 48 806 499 4 re f Q\n";
+    graphics+="q 0.82 0.05 0.28 rg 48 54 499 1 re f Q\n";
+    let textStream="";
     pg.forEach((line,i)=>{
       const y=780-i*20;
       const main=i<3;
       const head=/^(CONTRATTO |SERVIZIO |ART\\. |DATI |SOTTOSCRIZIONE)/.test(line);
       if(line.startsWith("TOTALE CONTRATTO:")){
-        stream+="q 0.95 0.96 0.92 rg 44 "+(y-9)+" 507 24 re f Q\n";
-        stream+="0.36 0.44 0.21 rg\n/F2 13 Tf\n1 0 0 1 48 "+y+" Tm ("+pdfEscape(line)+") Tj\n";
+        graphics+="q 0.95 0.96 0.92 rg 44 "+(y-9)+" 507 24 re f Q\n";
+        textStream+="0.36 0.44 0.21 rg\n/F2 13 Tf\n1 0 0 1 48 "+y+" Tm ("+pdfEscape(line)+") Tj\n";
       }else{
-        stream+=(main?"0.36 0.44 0.21 rg\n/F2 11 Tf\n":head?"0.82 0.05 0.28 rg\n/F2 10 Tf\n":"0.13 0.13 0.13 rg\n/F1 9.2 Tf\n");
-        stream+="1 0 0 1 48 "+y+" Tm ("+pdfEscape(line)+") Tj\n";
+        textStream+=(main?"0.36 0.44 0.21 rg\n/F2 11 Tf\n":head?"0.82 0.05 0.28 rg\n/F2 10 Tf\n":"0.13 0.13 0.13 rg\n/F1 9.2 Tf\n");
+        textStream+="1 0 0 1 48 "+y+" Tm ("+pdfEscape(line)+") Tj\n";
       }
     });
-    const content="BT\n"+stream+"ET\n";
+    const content=graphics+"BT\n"+textStream+"ET\n";
     const sid=obj("<< /Length "+Buffer.byteLength(content,"latin1")+" >>\nstream\n"+content+"endstream");
     pageIds.push(obj("<< /Type /Page /Parent "+pages+" 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 "+font+" 0 R /F2 "+bold+" 0 R >> >> /Contents "+sid+" 0 R >>"));
   }
