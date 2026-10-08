@@ -75,6 +75,7 @@ export default async function NuovaCoppiaPage({
 }: {
   searchParams: Promise<{ error?: string }>;
 }) {
+  await requireAdmin();
   const params = await searchParams;
 
   return (
