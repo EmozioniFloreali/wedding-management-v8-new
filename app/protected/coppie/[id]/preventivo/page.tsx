@@ -212,6 +212,13 @@ async function salvaPreventivo(formData: FormData) {
   revalidatePath(`/protected/coppie/${coupleId}/preventivo`);
   revalidatePath(`/protected/coppie/${coupleId}/progetto`);
 
+  // Una bozza salvata deve dare un feedback esplicito all'utente.
+  // In precedenza il server action terminava senza redirect, lasciando
+  // visivamente la stessa pagina e facendo sembrare che il clic non avesse effetto.
+  if (status !== "presentato") {
+    redirect(`/protected/coppie/${coupleId}/preventivo?success=1`);
+  }
+
   // Il contratto viene generato una sola volta, al passaggio da bozza a presentato.
   if (status === "presentato") {
     const contractForm = new FormData();
