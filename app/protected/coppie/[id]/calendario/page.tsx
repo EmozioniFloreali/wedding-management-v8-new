@@ -3,8 +3,6 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/admin-auth";
-
-export const instant = false;
 const TYPES = ["appuntamento","sopralluogo","consegna","montaggio","smontaggio","scadenza","altro"];
 const STATUSES = ["planned","confirmed","completed","cancelled"];
 
