@@ -14,7 +14,7 @@ function dateIt(value: string | null | undefined) {
   return new Intl.DateTimeFormat("it-IT", { dateStyle: "medium" }).format(new Date(value));
 }
 
-function dateTimeIt(value: string | null | undefined) {
+function dateTimeIt(value: string | Date | null | undefined) {
   if (!value) return "";
   return new Intl.DateTimeFormat("it-IT", { dateStyle: "short", timeStyle: "short" }).format(new Date(value));
 }
