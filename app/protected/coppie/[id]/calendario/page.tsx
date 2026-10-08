@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { requireAdmin } from "@/lib/admin-auth";
 
 export const instant = false;
 const TYPES = ["appuntamento","sopralluogo","consegna","montaggio","smontaggio","scadenza","altro"];
@@ -20,7 +21,7 @@ function romeLocalToIso(value: string) {
 }
 async function saveEvent(fd: FormData) {
   "use server";
-  const supabase=await createClient(); const {data:{user}}=await supabase.auth.getUser(); if(!user) redirect("/auth/login");
+  const { supabase, user } = await requireAdmin();
   const coupleId=s(fd.get("couple_id")); const title=s(fd.get("title")); if(!coupleId||!title) return;
   const {error}=await supabase.from("calendar_events").insert({couple_id:coupleId,title,description:s(fd.get("description"))||null,event_type:s(fd.get("event_type"))||"appuntamento",start_at:romeLocalToIso(s(fd.get("start_at")))||new Date().toISOString(),end_at:romeLocalToIso(s(fd.get("end_at"))),all_day:fd.get("all_day")==="on",location:s(fd.get("location"))||null,status:s(fd.get("status"))||"planned",reminder_minutes:Number(s(fd.get("reminder_minutes")))||null,notes:s(fd.get("notes"))||null,created_by:user.id});
   if(error) throw new Error(error.message); revalidatePath(`/protected/coppie/${coupleId}/calendario`);
@@ -36,7 +37,7 @@ async function deleteEvent(fd: FormData) {
 }
 
 export default async function CalendarPage({params}:{params:Promise<{id:string}>}) {
-  const {id}=await params; const supabase=await createClient(); const {data:{user}}=await supabase.auth.getUser(); if(!user) redirect("/auth/login");
+  const {id}=await params; const { supabase }=await requireAdmin();
   const {data:couple}=await supabase.from("couples").select("id,partner1_first_name,partner1_last_name,partner2_first_name,partner2_last_name").eq("id",id).maybeSingle(); if(!couple) redirect("/protected/coppie");
   const {data:events}=await supabase.from("calendar_events").select("*").eq("couple_id",id).order("start_at",{ascending:true});
   return <main className="mx-auto max-w-6xl px-6 py-10"><div className="mb-6 flex items-center justify-between gap-4"><div><div className="text-sm text-slate-500">Coppie / {couple.partner1_first_name} {couple.partner1_last_name} · {couple.partner2_first_name} {couple.partner2_last_name}</div><h1 className="mt-2 text-3xl font-bold">Calendario</h1><p className="mt-1 text-slate-600">Appuntamenti, sopralluoghi, consegne e montaggi.</p></div><Link className="rounded-lg border px-4 py-2 font-medium" href={`/protected/coppie/${id}`}>Torna alla scheda coppia</Link></div>
