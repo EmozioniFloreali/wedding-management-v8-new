@@ -125,51 +125,58 @@ export default async function ProgettoFlorealeSposiPage({
             if (!section && !sectionItems.length) return null;
 
             return (
-              <section key={key} className="rounded-2xl border bg-white p-6 shadow-sm">
-                <h2 className="text-xl font-bold">{SECTION_LABELS[key]}</h2>
+              <details key={key} className="group overflow-hidden rounded-2xl border bg-white shadow-sm">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-6 font-bold text-xl select-none [&::-webkit-details-marker]:hidden">
+                  <span>{SECTION_LABELS[key]}</span>
+                  <span className="text-slate-400 transition-transform group-open:rotate-180" aria-hidden="true">⌄</span>
+                </summary>
 
-                {(section?.flowers || section?.structures || section?.notes) && (
-                  <div className="mt-4 grid gap-4 md:grid-cols-2">
-                    {section?.flowers && (
-                      <div className="rounded-xl border bg-slate-50 p-4">
-                        <h3 className="font-semibold">Fiori scelti</h3>
-                        <p className="mt-2 whitespace-pre-wrap text-sm text-slate-700">{section.flowers}</p>
-                      </div>
-                    )}
-                    {section?.structures && (
-                      <div className="rounded-xl border bg-slate-50 p-4">
-                        <h3 className="font-semibold">Strutture scelte</h3>
-                        <p className="mt-2 whitespace-pre-wrap text-sm text-slate-700">{section.structures}</p>
-                      </div>
-                    )}
-                    {section?.notes && (
-                      <div className="rounded-xl border bg-slate-50 p-4 md:col-span-2">
-                        <h3 className="font-semibold">Note</h3>
-                        <p className="mt-2 whitespace-pre-wrap text-sm text-slate-700">{section.notes}</p>
-                      </div>
-                    )}
-                  </div>
-                )}
+                <div className="border-t px-6 pb-6 pt-5">
+                  {(section?.flowers || section?.structures || section?.notes) && (
+                    <div className="grid gap-4 md:grid-cols-2">
+                      {section?.flowers && (
+                        <div className="rounded-xl border bg-slate-50 p-4">
+                          <h3 className="font-semibold">Fiori scelti</h3>
+                          <p className="mt-2 whitespace-pre-wrap text-sm text-slate-700">{section.flowers}</p>
+                        </div>
+                      )}
+                      {section?.structures && (
+                        <div className="rounded-xl border bg-slate-50 p-4">
+                          <h3 className="font-semibold">Strutture scelte</h3>
+                          <p className="mt-2 whitespace-pre-wrap text-sm text-slate-700">{section.structures}</p>
+                        </div>
+                      )}
+                      {section?.notes && (
+                        <div className="rounded-xl border bg-slate-50 p-4 md:col-span-2">
+                          <h3 className="font-semibold">Note</h3>
+                          <p className="mt-2 whitespace-pre-wrap text-sm text-slate-700">{section.notes}</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
-                {sectionItems.length > 0 && (
-                  <div className="mt-5 space-y-3">
-                    {sectionItems.map((item) => (
-                      <div key={item.id} className="rounded-xl border p-4">
-                        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                          <div>
-                            <h3 className="font-semibold">{item.name}</h3>
-                            {item.description && <p className="mt-1 text-sm text-slate-600">{item.description}</p>}
-                            <p className="mt-1 text-sm text-slate-500">Quantità: {item.quantity} {item.unit}</p>
-                          </div>
-                          <div className={`rounded-full px-3 py-1 text-xs font-semibold ${item.include_in_quote ? "bg-emerald-100 text-emerald-800" : "bg-slate-100 text-slate-600"}`}>
-                            {item.include_in_quote ? "Selezionato per il preventivo" : "Solo progetto"}
+                  {sectionItems.length > 0 ? (
+                    <div className={section?.flowers || section?.structures || section?.notes ? "mt-5 space-y-3" : "space-y-3"}>
+                      {sectionItems.map((item) => (
+                        <div key={item.id} className="rounded-xl border p-4">
+                          <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                            <div>
+                              <h3 className="font-semibold">{item.name}</h3>
+                              {item.description && <p className="mt-1 text-sm text-slate-600">{item.description}</p>}
+                              <p className="mt-1 text-sm text-slate-500">Quantità: {item.quantity} {item.unit}</p>
+                            </div>
+                            <div className={`rounded-full px-3 py-1 text-xs font-semibold ${item.include_in_quote ? "bg-emerald-100 text-emerald-800" : "bg-slate-100 text-slate-600"}`}>
+                              {item.include_in_quote ? "Selezionato per il preventivo" : "Solo progetto"}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </section>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-slate-500">Nessun dettaglio inserito per questa sezione.</p>
+                  )}
+                </div>
+              </details>
             );
           })}
         </div>
