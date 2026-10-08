@@ -374,6 +374,8 @@ export default async function CoupleDetailPage({ params }: PageProps) {
             >
               Apri contratti
             </Link>
+              <Link href={`/protected/coppie/${couple.id}/pagamenti`} className="rounded-xl border bg-white px-4 py-3 font-medium shadow-sm">Pagamenti e quietanze</Link>
+              <Link href={`/protected/coppie/${couple.id}/documenti`} className="rounded-xl border bg-white px-4 py-3 font-medium shadow-sm">Documenti</Link>
           </div>
         </div>
 
