@@ -244,11 +244,17 @@ async function creaNuovaVersione(formData: FormData) {
 
   const { data: latest } = await supabase
     .from("quotes")
-    .select("version_number")
+    .select("id,version_number,status")
     .eq("couple_id", coupleId)
     .order("version_number", { ascending: false })
     .limit(1)
     .maybeSingle();
+
+  // Se una nuova bozza esiste già, non crearne un'altra: riapri quella versione.
+  if (latest?.status === "bozza" && latest.id) {
+    revalidatePath(`/protected/coppie/${coupleId}/preventivo`);
+    redirect(`/protected/coppie/${coupleId}/preventivo`);
+  }
 
   const versionNumber = Number(latest?.version_number || sourceQuote.version_number || 0) + 1;
 
