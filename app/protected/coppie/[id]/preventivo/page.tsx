@@ -75,6 +75,20 @@ async function syncProjectSelectionsToQuote(supabase: any, projectId: string, qu
   }
 }
 
+async function assertQuoteDraft(supabase: any, quoteId: string) {
+  const { data: quote, error } = await supabase
+    .from("quotes")
+    .select("couple_id,status")
+    .eq("id", quoteId)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!quote) throw new Error("Preventivo non trovato.");
+  if (quote.status !== "bozza") {
+    throw new Error("Il preventivo non è più modificabile perché è stato presentato. Modifica il Progetto Floreale e crea una nuova versione del preventivo.");
+  }
+  return quote;
+}
+
 async function salvaPreventivo(formData: FormData) {
   "use server";
   const { supabase, user } = await getAdmin();
@@ -97,8 +111,7 @@ async function salvaPreventivo(formData: FormData) {
   if (!coupleId || !projectId) return;
 
   if (quoteId) {
-    const { data: currentQuote } = await supabase.from("quotes").select("status").eq("id", quoteId).maybeSingle();
-    if (currentQuote?.status === "confermato") throw new Error("Il preventivo confermato non è modificabile. Crea una nuova versione dal Progetto Floreale.");
+    await assertQuoteDraft(supabase, quoteId);
   }
 
   const payload = {
@@ -132,8 +145,7 @@ async function salvaVoce(formData: FormData) {
   const quoteId = value(formData, "quote_id");
   const description = value(formData, "description");
   if (!quoteId || !description) return;
-  const { data: quote } = await supabase.from("quotes").select("couple_id,status").eq("id", quoteId).single();
-  if (quote?.status === "confermato") throw new Error("Il preventivo confermato non è modificabile. Crea una nuova versione dal Progetto Floreale.");
+  const quote = await assertQuoteDraft(supabase, quoteId);
   const { error } = await supabase.from("quote_items").insert({
     quote_id: quoteId,
     area: "manuale",
@@ -152,8 +164,7 @@ async function eliminaVoce(formData: FormData) {
   const { supabase } = await getAdmin();
   const itemId = value(formData, "item_id");
   const quoteId = value(formData, "quote_id");
-  const { data: quote } = await supabase.from("quotes").select("couple_id,status").eq("id", quoteId).single();
-  if (quote?.status === "confermato") throw new Error("Il preventivo confermato non è modificabile. Crea una nuova versione dal Progetto Floreale.");
+  const quote = await assertQuoteDraft(supabase, quoteId);
   await supabase.from("quote_items").delete().eq("id", itemId);
   if (quote) revalidatePath(`/protected/coppie/${quote.couple_id}/preventivo`);
 }
