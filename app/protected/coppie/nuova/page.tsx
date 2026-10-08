@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { requireAdmin } from "@/lib/admin-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -45,7 +46,7 @@ async function createCouple(formData: FormData) {
   const { data: couple, error } = await supabase
     .from("couples")
     .insert({
-      created_by: userData.user.id,
+      created_by: user.id,
       partner1_first_name: partner1FirstName,
       partner1_last_name: partner1LastName,
       partner2_first_name: partner2FirstName,
@@ -69,6 +70,7 @@ async function createCouple(formData: FormData) {
 }
 
 export default async function NuovaCoppiaPage({
+  await requireAdmin();
   searchParams,
 }: {
   searchParams: Promise<{ error?: string }>;
