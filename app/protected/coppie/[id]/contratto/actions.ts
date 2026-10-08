@@ -188,6 +188,29 @@ export async function generaContratto(formData: FormData) {
     .limit(1)
     .maybeSingle();
 
+  // Idempotenza: non creare due contratti per la stessa versione di preventivo.
+  const { data: existingContract } = quote?.id
+    ? await supabase
+        .from("contracts")
+        .select("id,document_id,version_number")
+        .eq("quote_id", quote.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle()
+    : { data: null };
+
+  if (existingContract?.document_id) {
+    revalidatePath(`/protected/coppie/${coupleId}/contratti`);
+    redirect(`/protected/coppie/${coupleId}/contratti`);
+  }
+
+  // Se esiste un contratto incompleto (ad esempio dopo un upload fallito),
+  // rimuovilo prima di ricrearlo in modo atomico.
+  if (existingContract?.id) {
+    await supabase.from("contract_items").delete().eq("contract_id", existingContract.id);
+    await supabase.from("contracts").delete().eq("id", existingContract.id);
+  }
+
   const contractVersion = Number(latestContract?.version_number || 0) + 1;
   const contractDateIso = new Date().toISOString().slice(0, 10);
 
@@ -296,7 +319,11 @@ export async function generaContratto(formData: FormData) {
     .eq("id", contract.id);
 
   if (linkError) {
-    throw new Error(`Documento creato ma collegamento al contratto non riuscito: ${linkError.message}`);
+    await supabase.from("client_documents").delete().eq("id", document.id);
+    await supabase.storage.from("client-documents").remove([storagePath]);
+    await supabase.from("contract_items").delete().eq("contract_id", contract.id);
+    await supabase.from("contracts").delete().eq("id", contract.id);
+    throw new Error(`Collegamento del documento al contratto non riuscito: ${linkError.message}`);
   }
 
   revalidatePath(`/protected/coppie/${coupleId}/contratti`);
