@@ -2,14 +2,13 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { requireAdmin } from "@/lib/admin-auth";
 
 function s(v: FormDataEntryValue | null) { return v == null ? "" : String(v).trim(); }
 
 async function markRead(fd: FormData) {
   "use server";
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/auth/login");
+  const { supabase, user } = await requireAdmin();
   const id = s(fd.get("id"));
   if (!id) return;
   await supabase.from("notifications").update({ read_at: new Date().toISOString() }).eq("id", id).eq("user_id", user.id);
