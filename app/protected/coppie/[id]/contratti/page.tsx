@@ -98,52 +98,52 @@ export default async function ContrattiPage({
     .join(" ");
 
   return (
-    <main className="min-h-screen bg-slate-50">
+    <main className="min-h-screen bg-background">
       <div className="mx-auto max-w-6xl px-6 py-8">
         <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <div className="mb-2 flex flex-wrap gap-2 text-sm text-slate-500">
+            <div className="mb-2 flex flex-wrap gap-2 text-sm text-muted-foreground">
               <Link href="/protected/coppie">Coppie</Link>
               <span>/</span>
               <Link href={`/protected/coppie/${coupleId}`}>{coupleName}</Link>
               <span>/</span>
               <span>Contratti</span>
             </div>
-            <h1 className="text-3xl font-bold text-slate-900">Contratti</h1>
-            <p className="mt-1 text-slate-600">
+            <h1 className="text-3xl font-semibold tracking-tight text-foreground">Contratti</h1>
+            <p className="mt-1 text-muted-foreground">
               Storico dei contratti generati automaticamente dai preventivi presentati.
             </p>
           </div>
           <div className="flex gap-2">
             <Link
               href={`/protected/coppie/${coupleId}/preventivo`}
-              className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold"
+              className="rounded-xl border border-border bg-card px-4 py-3 text-sm font-semibold"
             >
               Preventivi
             </Link>
             <Link
               href={`/protected/coppie/${coupleId}`}
-              className="rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white"
+              className="ef-button-primary"
             >
               Scheda coppia
             </Link>
           </div>
         </div>
 
-        <div className="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-5">
-          <p className="font-semibold text-emerald-900">
+        <div className="mb-6 rounded-2xl border border-primary/20 bg-secondary p-5">
+          <p className="font-semibold text-primary">
             Generazione automatica attiva
           </p>
-          <p className="mt-1 text-sm text-emerald-800">
+          <p className="mt-1 text-sm text-primary">
             Ogni nuovo preventivo presentato genera una nuova versione del contratto,
             mantenendo le versioni precedenti.
           </p>
         </div>
 
         {!contracts?.length ? (
-          <section className="rounded-2xl border border-dashed bg-white p-8 text-center">
-            <h2 className="text-xl font-bold">Nessun contratto</h2>
-            <p className="mt-2 text-sm text-slate-500">
+          <section className="rounded-2xl border border-dashed bg-card p-8 text-center">
+            <h2 className="text-xl font-semibold tracking-tight">Nessun contratto</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
               Il primo contratto verrà generato automaticamente quando un preventivo
               verrà presentato.
             </p>
@@ -158,7 +158,7 @@ export default async function ContrattiPage({
               return (
                 <section
                   key={contract.id}
-                  className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+                  className="ef-card p-6"
                 >
                   <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
                     <div>
@@ -166,7 +166,7 @@ export default async function ContrattiPage({
                         <span className="rounded-full bg-slate-900 px-3 py-1 text-sm font-bold text-white">
                           Contratto v{contract.version_number}
                         </span>
-                        <span className="rounded-full bg-emerald-100 px-3 py-1 text-sm font-semibold text-emerald-800">
+                        <span className="rounded-full bg-emerald-100 px-3 py-1 text-sm font-semibold text-primary">
                           {statusLabel(quote?.status)}
                         </span>
                         {signed ? (
@@ -179,7 +179,7 @@ export default async function ContrattiPage({
                           </span>
                         )}
                       </div>
-                      <p className="mt-3 text-sm text-slate-500">
+                      <p className="mt-3 text-sm text-muted-foreground">
                         Generato il{" "}
                         {contract.created_at
                           ? new Date(contract.created_at).toLocaleDateString("it-IT")
@@ -191,8 +191,8 @@ export default async function ContrattiPage({
                     </div>
 
                     <div className="text-left lg:text-right">
-                      <p className="text-sm text-slate-500">Totale contratto</p>
-                      <p className="text-3xl font-bold text-slate-900">
+                      <p className="text-sm text-muted-foreground">Totale contratto</p>
+                      <p className="text-3xl font-semibold tracking-tight text-foreground">
                         {money(contract.total_amount)}
                       </p>
                       <div className="mt-3 flex flex-wrap gap-2 lg:justify-end">
@@ -200,13 +200,13 @@ export default async function ContrattiPage({
                           href={`/protected/coppie/${coupleId}/contratti/documento?contract_id=${contract.id}`}
                           target="_blank"
                           rel="noreferrer"
-                          className="rounded-lg bg-slate-900 px-3 py-2 text-xs font-semibold text-white"
+                          className="ef-button-primary px-3 py-2"
                         >
                           PDF contratto
                         </a>
                         <a
                           href={`/protected/coppie/${coupleId}/contratti/documento?contract_id=${contract.id}&format=docx`}
-                          className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-800"
+                          className="rounded-lg border border-border bg-card px-3 py-2 text-xs font-semibold text-foreground"
                         >
                           DOCX contratto
                         </a>
@@ -215,16 +215,16 @@ export default async function ContrattiPage({
                   </div>
 
                   <div className="mt-6 grid gap-4 sm:grid-cols-3">
-                    <div className="rounded-xl bg-slate-50 p-4">
-                      <p className="text-sm text-slate-500">Acconto</p>
+                    <div className="rounded-xl bg-background p-4">
+                      <p className="text-sm text-muted-foreground">Acconto</p>
                       <p className="mt-1 font-bold">{money(contract.deposit_amount)}</p>
                     </div>
-                    <div className="rounded-xl bg-slate-50 p-4">
-                      <p className="text-sm text-slate-500">Saldo</p>
+                    <div className="rounded-xl bg-background p-4">
+                      <p className="text-sm text-muted-foreground">Saldo</p>
                       <p className="mt-1 font-bold">{money(contract.balance_amount)}</p>
                     </div>
-                    <div className="rounded-xl bg-slate-50 p-4">
-                      <p className="text-sm text-slate-500">Data contratto</p>
+                    <div className="rounded-xl bg-background p-4">
+                      <p className="text-sm text-muted-foreground">Data contratto</p>
                       <p className="mt-1 font-bold">
                         {contract.contract_date
                           ? new Date(contract.contract_date).toLocaleDateString("it-IT")
@@ -235,7 +235,7 @@ export default async function ContrattiPage({
 
                   <div className="mt-6">
                     <h3 className="font-bold">Voci contrattuali</h3>
-                    <p className="mt-1 text-sm text-slate-500">
+                    <p className="mt-1 text-sm text-muted-foreground">
                       Le voci sono state copiate automaticamente dal preventivo presentato.
                     </p>
 
@@ -243,20 +243,20 @@ export default async function ContrattiPage({
                       {contractItems.map((item) => (
                         <div
                           key={item.id}
-                          className="rounded-xl border bg-slate-50 p-4"
+                          className="rounded-xl border bg-background p-4"
                         >
                           <div className="font-semibold">{item.description}</div>
-                          <div className="mt-1 text-sm text-slate-500">
+                          <div className="mt-1 text-sm text-muted-foreground">
                             {item.quantity} {item.unit}
                             {item.area ? ` · ${item.area}` : ""}
                           </div>
                           {item.notes ? (
-                            <div className="mt-2 text-sm text-slate-600">{item.notes}</div>
+                            <div className="mt-2 text-sm text-muted-foreground">{item.notes}</div>
                           ) : null}
                         </div>
                       ))}
                       {!contractItems.length && (
-                        <p className="text-sm text-slate-500">
+                        <p className="text-sm text-muted-foreground">
                           Nessuna voce associata.
                         </p>
                       )}
@@ -264,15 +264,15 @@ export default async function ContrattiPage({
                   </div>
 
                   {contract.notes ? (
-                    <div className="mt-6 rounded-xl border bg-white p-4">
+                    <div className="mt-6 rounded-xl border bg-secondary/50 p-4">
                       <p className="text-sm font-semibold">Note</p>
-                      <p className="mt-1 whitespace-pre-wrap text-sm text-slate-600">
+                      <p className="mt-1 whitespace-pre-wrap text-sm text-muted-foreground">
                         {contract.notes}
                       </p>
                     </div>
                   ) : null}
 
-                  <div className="mt-6 border-t pt-5 text-sm text-slate-500">
+                  <div className="mt-6 border-t pt-5 text-sm text-muted-foreground">
                     {contract.signed_at
                       ? `Firmato il ${new Date(contract.signed_at).toLocaleDateString("it-IT")}`
                       : "La firma della coppia non è ancora registrata."}
