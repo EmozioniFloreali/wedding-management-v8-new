@@ -78,10 +78,10 @@ export default async function TasksPage({params}:{params:Promise<{id:string}>}) 
 
   return <main className="mx-auto max-w-6xl px-6 py-10">
     <div className="mb-6 flex items-center justify-between gap-4">
-      <div><div className="text-sm text-slate-500">Coppie / {couple.partner1_first_name} {couple.partner1_last_name} · {couple.partner2_first_name} {couple.partner2_last_name}</div><h1 className="mt-2 text-3xl font-bold">Attività</h1><p className="mt-1 text-slate-600">Checklist, scadenze, priorità e controllo operativo.</p></div>
-      <Link className="rounded-lg border px-4 py-2 font-medium" href={`/protected/coppie/${id}`}>Torna alla scheda coppia</Link>
+      <div><div className="text-sm text-muted-foreground">Coppie / {couple.partner1_first_name} {couple.partner1_last_name} · {couple.partner2_first_name} {couple.partner2_last_name}</div><h1 className="mt-2 text-3xl font-bold">Attività</h1><p className="mt-1 text-muted-foreground">Checklist, scadenze, priorità e controllo operativo.</p></div>
+      <Link className="ef-button-secondary" href={`/protected/coppie/${id}`}>Torna alla scheda coppia</Link>
     </div>
-    <section className="rounded-2xl border bg-white p-6 shadow-sm">
+    <section className="ef-card p-6">
       <h2 className="text-xl font-semibold">Nuova attività</h2>
       <form action={saveTask} className="mt-5 grid gap-4 md:grid-cols-2">
         <input type="hidden" name="couple_id" value={id}/>
@@ -94,12 +94,12 @@ export default async function TasksPage({params}:{params:Promise<{id:string}>}) 
         <button className="rounded-lg bg-slate-900 px-5 py-3 font-semibold text-white md:col-span-2">Salva attività</button>
       </form>
     </section>
-    <section className="mt-6 rounded-2xl border bg-white p-6 shadow-sm">
+    <section className="mt-6 ef-card p-6">
       <h2 className="text-xl font-semibold">Checklist</h2>
       <div className="mt-4 space-y-3">
-        {(tasks||[]).length===0?<p className="text-slate-500">Nessuna attività.</p>:(tasks||[]).map(t=>{
+        {(tasks||[]).length===0?<p className="text-muted-foreground">Nessuna attività.</p>:(tasks||[]).map(t=>{
           const due=t.due_date?new Intl.DateTimeFormat("it-IT",{dateStyle:"full",timeZone:"Europe/Rome"}).format(new Date(`${t.due_date}T12:00:00`)):"Nessuna scadenza";
-          return <div key={t.id} className="rounded-xl border p-4"><div className="flex flex-wrap items-start justify-between gap-3"><div><div className="font-semibold">{t.title}</div><div className="text-sm text-slate-500">{due}{t.due_time?` · ${String(t.due_time).slice(0,5)}`:""}</div><div className="mt-1 text-sm">{areaLabel(t.area)} · priorità {priorityLabel(t.priority)}</div></div><div className="flex gap-2"><form action={updateTask}><input type="hidden" name="id" value={t.id}/><input type="hidden" name="couple_id" value={id}/><select name="status" defaultValue={t.status} className="rounded-lg border p-2">{STATUSES.map(x=><option key={x} value={x}>{statusLabel(x)}</option>)}</select><button className="rounded-lg border px-3 py-2">Aggiorna</button></form><form action={deleteTask}><input type="hidden" name="id" value={t.id}/><input type="hidden" name="couple_id" value={id}/><button className="rounded-lg border border-red-200 px-3 py-2 text-red-700">Elimina</button></form></div></div>{t.description&&<p className="mt-3 whitespace-pre-wrap text-slate-700">{t.description}</p>}{t.notes&&<p className="mt-2 whitespace-pre-wrap text-sm text-slate-500">{t.notes}</p>}</div>
+          return <div key={t.id} className="rounded-xl border p-4"><div className="flex flex-wrap items-start justify-between gap-3"><div><div className="font-semibold">{t.title}</div><div className="text-sm text-muted-foreground">{due}{t.due_time?` · ${String(t.due_time).slice(0,5)}`:""}</div><div className="mt-1 text-sm">{areaLabel(t.area)} · priorità {priorityLabel(t.priority)}</div></div><div className="flex gap-2"><form action={updateTask}><input type="hidden" name="id" value={t.id}/><input type="hidden" name="couple_id" value={id}/><select name="status" defaultValue={t.status} className="rounded-lg border p-2">{STATUSES.map(x=><option key={x} value={x}>{statusLabel(x)}</option>)}</select><button className="rounded-lg border px-3 py-2">Aggiorna</button></form><form action={deleteTask}><input type="hidden" name="id" value={t.id}/><input type="hidden" name="couple_id" value={id}/><button className="rounded-lg border border-red-200 px-3 py-2 text-red-700">Elimina</button></form></div></div>{t.description&&<p className="mt-3 whitespace-pre-wrap text-slate-700">{t.description}</p>}{t.notes&&<p className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground">{t.notes}</p>}</div>
         })}</div>
     </section>
   </main>;
