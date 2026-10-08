@@ -189,9 +189,6 @@ export async function generaContratto(formData: FormData) {
     .maybeSingle();
 
   const contractVersion = Number(latestContract?.version_number || 0) + 1;
-  const contractTotal = quoteData?.total ?? moneyNumber(project.total_amount);
-  const contractDeposit = quoteData?.deposit ?? 0;
-  const contractBalance = Math.max(0, contractTotal - contractDeposit);
   const contractDateIso = new Date().toISOString().slice(0, 10);
 
   const { data: contract, error: contractError } = await supabase
