@@ -483,7 +483,7 @@ export default async function PreventivoPage({
             <p className="mt-1 text-muted-foreground">Le voci derivano esclusivamente da ciò che è stato selezionato nel Progetto Floreale.</p>
           </div>
           <div className="flex flex-wrap gap-2">
-            {uiStatus(quote?.status) === "confermato" ? <div className="rounded-xl bg-secondary px-4 py-3 text-sm font-semibold text-primary">✓ Preventivo confermato. Il contratto era già stato generato alla presentazione.</div> : <div className="rounded-xl bg-slate-100 px-4 py-3 text-sm text-muted-foreground">Il contratto viene generato automaticamente quando il preventivo viene presentato. La conferma della coppia registra la decisione degli sposi.</div>}
+            {uiStatus(quote?.status) === "confermato" ? <div className="rounded-xl bg-secondary px-4 py-3 text-sm font-semibold text-primary">✓ Preventivo confermato. Il contratto era già stato generato alla presentazione.</div> : <div className="rounded-xl border border-primary/20 bg-secondary px-4 py-3 text-sm text-primary">Il contratto viene generato automaticamente quando il preventivo viene presentato. La conferma della coppia registra la decisione degli sposi.</div>}
             <Link href={`/protected/coppie/${coupleId}/progetto`} className="rounded-xl border border-border bg-card px-4 py-3 text-sm font-semibold">Progetto floreale</Link>
             {quote && (
               <>
@@ -508,7 +508,7 @@ export default async function PreventivoPage({
         <section className="mb-8 ef-card p-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-xl font-semibold tracking-tight">Dati economici</h2>
-            {quote && <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-foreground">Versione V{quote.version_number}</span>}
+            {quote && <span className="rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-primary">Versione V{quote.version_number}</span>}
           </div>
           <p className="mt-1 text-sm text-muted-foreground">Il prezzo resta unico: non vengono assegnati prezzi alle singole composizioni.</p>
           {quote && uiStatus(quote.status) !== "bozza" && (
@@ -519,7 +519,7 @@ export default async function PreventivoPage({
               </div>
               <input type="hidden" name="couple_id" value={coupleId}/>
               <input type="hidden" name="quote_id" value={quote.id}/>
-              <button className="ef-button-primary hover:bg-emerald-800">
+              <button className="ef-button-primary">
                 + Crea nuova versione V{Number(quote.version_number || 0) + 1}
               </button>
             </form>
