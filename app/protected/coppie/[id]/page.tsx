@@ -66,11 +66,11 @@ export default async function CoupleDetailPage({ params }: PageProps) {
     `${couple.partner2_first_name} ${couple.partner2_last_name}`;
 
   return (
-    <main className="min-h-screen bg-muted/30">
-      <header className="border-b bg-background">
+    <main className="min-h-screen bg-background">
+      <header className="border-b bg-background/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">
+            <h1 className="text-3xl font-semibold tracking-tight">
               Scheda coppia
             </h1>
             <p className="text-sm text-muted-foreground">
@@ -80,7 +80,7 @@ export default async function CoupleDetailPage({ params }: PageProps) {
 
           <Link
             href="/protected/coppie"
-            className="inline-flex items-center gap-2 rounded-md border bg-background px-4 py-2 text-sm font-medium hover:bg-muted"
+            className="inline-flex items-center gap-2 ef-button-secondary"
           >
             <ArrowLeft className="h-4 w-4" />
             Torna alle coppie
@@ -88,14 +88,14 @@ export default async function CoupleDetailPage({ params }: PageProps) {
         </div>
       </header>
 
-      <section className="mx-auto max-w-7xl px-6 py-10">
+      <section className="mx-auto max-w-7xl px-5 py-10 md:px-8">
         <div className="mb-8 flex items-center justify-between gap-4">
           <div>
             <p className="text-sm font-medium text-muted-foreground">
               AREA PROFESSIONALE
             </p>
 
-            <h2 className="mt-2 text-3xl font-bold tracking-tight">
+            <h2 className="mt-2 text-3xl font-semibold tracking-tight">
               {coupleName}
             </h2>
 
@@ -106,7 +106,7 @@ export default async function CoupleDetailPage({ params }: PageProps) {
 
           <Link
             href={`/protected/coppie/${couple.id}/modifica`}
-            className="inline-flex items-center gap-2 rounded-md border bg-background px-4 py-2 text-sm font-medium hover:bg-muted"
+            className="inline-flex items-center gap-2 ef-button-secondary"
           >
             <Pencil className="h-4 w-4" />
             Modifica coppia
@@ -115,7 +115,7 @@ export default async function CoupleDetailPage({ params }: PageProps) {
 
         <div className="grid gap-6 lg:grid-cols-3">
           {/* DATI DELLA COPPIA */}
-          <div className="rounded-xl border bg-background p-6 lg:col-span-2">
+          <div className="rounded-2xl border bg-card p-6 shadow-sm lg:col-span-2">
             <h3 className="text-lg font-semibold">Dati della coppia</h3>
 
             <p className="mt-1 text-sm text-muted-foreground">
@@ -173,7 +173,7 @@ export default async function CoupleDetailPage({ params }: PageProps) {
           </div>
 
           {/* STATO MATRIMONIO */}
-          <div className="rounded-xl border bg-background p-6">
+          <div className="rounded-2xl border bg-card p-6 shadow-sm">
             <h3 className="text-lg font-semibold">Stato matrimonio</h3>
 
             <p className="mt-1 text-sm text-muted-foreground">
@@ -181,7 +181,7 @@ export default async function CoupleDetailPage({ params }: PageProps) {
             </p>
 
             {!wedding ? (
-              <div className="mt-6 rounded-lg border border-dashed p-5">
+              <div className="mt-6 rounded-2xl border border-dashed bg-secondary/40 p-5">
                 <p className="font-medium">Nessun matrimonio inserito</p>
 
                 <p className="mt-2 text-sm text-muted-foreground">
@@ -190,7 +190,7 @@ export default async function CoupleDetailPage({ params }: PageProps) {
 
                 <Link
                   href={`/protected/coppie/${couple.id}/matrimonio`}
-                  className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background hover:opacity-90"
+                  className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-md ef-button-primary"
                 >
                   <CalendarDays className="h-4 w-4" />
                   Inserisci dati matrimonio
@@ -257,7 +257,7 @@ export default async function CoupleDetailPage({ params }: PageProps) {
         {/* MODULI OPERATIVI */}
         <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {/* PROGETTO FLOREALE */}
-          <div className="rounded-xl border bg-background p-6">
+          <div className="rounded-2xl border bg-card p-6 shadow-sm">
             <Flower2 className="h-7 w-7" />
 
             <h3 className="mt-4 font-semibold">
@@ -270,14 +270,14 @@ export default async function CoupleDetailPage({ params }: PageProps) {
 
             <Link
               href={`/protected/coppie/${couple.id}/progetto`}
-              className="mt-5 inline-flex w-full items-center justify-center rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background hover:opacity-90"
+              className="mt-5 inline-flex w-full items-center justify-center rounded-md ef-button-primary"
             >
               Apri progetto
             </Link>
           </div>
 
           {/* COSTI E RENDICONTO INTERNO */}
-          <div className="rounded-xl border border-amber-200 bg-amber-50 p-6">
+          <div className="rounded-2xl border border-accent/40 bg-secondary/60 p-6">
             <div className="text-2xl">💶</div>
 
             <h3 className="mt-4 font-semibold">
@@ -290,18 +290,18 @@ export default async function CoupleDetailPage({ params }: PageProps) {
 
             <Link
               href={`/protected/coppie/${couple.id}/costi`}
-              className="mt-5 inline-flex w-full items-center justify-center rounded-md bg-amber-700 px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+              className="mt-5 inline-flex w-full items-center justify-center ef-button-primary"
             >
               Apri rendiconto
             </Link>
 
-            <p className="mt-3 text-xs font-medium text-amber-900">
+            <p className="mt-3 text-xs font-medium text-primary">
               🔒 Solo area professionale
             </p>
           </div>
 
           {/* ACCESSO AREA SPOSI */}
-          <div className={`rounded-xl border p-6 ${couple.portal_enabled ? "border-emerald-200 bg-emerald-50" : "border-slate-200 bg-slate-50"}`}>
+          <div className={`rounded-2xl border bg-card p-6 shadow-sm ${couple.portal_enabled ? "border-emerald-200 bg-emerald-50" : "border-slate-200 bg-slate-50"}`}>
             <div className="text-2xl">{couple.portal_enabled ? "🔓" : "🔒"}</div>
             <h3 className="mt-4 font-semibold">Accesso Area Sposi</h3>
             <p className="mt-2 text-sm text-muted-foreground">
@@ -309,14 +309,14 @@ export default async function CoupleDetailPage({ params }: PageProps) {
             </p>
             <Link
               href={`/protected/coppie/${couple.id}/accesso-sposi`}
-              className="mt-5 inline-flex w-full items-center justify-center rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background hover:opacity-90"
+              className="mt-5 inline-flex w-full items-center justify-center rounded-md ef-button-primary"
             >
               Gestisci accesso
             </Link>
           </div>
 
           {/* CALENDARIO */}
-          <div className="rounded-xl border bg-background p-6">
+          <div className="rounded-2xl border bg-card p-6 shadow-sm">
             <CalendarDays className="h-7 w-7" />
 
             <h3 className="mt-4 font-semibold">Calendario</h3>
@@ -327,14 +327,14 @@ export default async function CoupleDetailPage({ params }: PageProps) {
 
             <Link
               href={`/protected/coppie/${id}/calendario`}
-              className="mt-5 inline-flex w-full items-center justify-center rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background hover:opacity-90"
+              className="mt-5 inline-flex w-full items-center justify-center rounded-md ef-button-primary"
             >
               Apri calendario
             </Link>
           </div>
 
           {/* MESSAGGI */}
-          <div className="rounded-xl border bg-background p-6">
+          <div className="rounded-2xl border bg-card p-6 shadow-sm">
             <MessageSquare className="h-7 w-7" />
 
             <h3 className="mt-4 font-semibold">Messaggi</h3>
@@ -345,14 +345,14 @@ export default async function CoupleDetailPage({ params }: PageProps) {
 
             <Link
               href={`/protected/coppie/${couple.id}/messaggi`}
-              className="mt-5 inline-flex w-full items-center justify-center rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background hover:opacity-90"
+              className="mt-5 inline-flex w-full items-center justify-center rounded-md ef-button-primary"
             >
               Apri messaggi
             </Link>
           </div>
 
           {/* DOCUMENTI */}
-          <div className="rounded-xl border bg-background p-6">
+          <div className="rounded-2xl border bg-card p-6 shadow-sm">
             <FileText className="h-7 w-7" />
 
             <h3 className="mt-4 font-semibold">Documenti</h3>
@@ -364,7 +364,7 @@ export default async function CoupleDetailPage({ params }: PageProps) {
             <div className="mt-5 space-y-2">
               <Link
                 href={`/protected/coppie/${couple.id}/preventivo`}
-                className="inline-flex w-full items-center justify-center rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background hover:opacity-90"
+                className="inline-flex w-full items-center justify-center rounded-md ef-button-primary"
               >
                 Apri preventivi
               </Link>
@@ -394,14 +394,14 @@ export default async function CoupleDetailPage({ params }: PageProps) {
         </div>
 
         {/* ATTIVITÀ */}
-        <div className="mt-8 rounded-xl border bg-background p-6">
+        <div className="mt-8 rounded-2xl border bg-card p-6 shadow-sm">
           <h3 className="text-lg font-semibold">Attività</h3>
 
           <p className="mt-1 text-sm text-muted-foreground">
             Attività e prossime scadenze della coppia.
           </p>
 
-          <div className="mt-6 rounded-lg border border-dashed p-5">
+          <div className="mt-6 rounded-2xl border border-dashed bg-secondary/40 p-5">
             <p className="font-medium">Area attività pronta</p>
 
             <p className="mt-2 text-sm text-muted-foreground">
