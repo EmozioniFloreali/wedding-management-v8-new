@@ -98,37 +98,37 @@ export function buildContractPdf(data:ContractData):Uint8Array{
   for(let start=0;start<lines.length;start+=34){
     const pg=lines.slice(start,start+34);
     let stream="";
-    stream+="q 0.36 0.44 0.21 rg 48 806 499 4 re f Q\\n";
-    stream+="q 0.82 0.05 0.28 rg 48 54 499 1 re f Q\\n";
+    stream+="q 0.36 0.44 0.21 rg 48 806 499 4 re f Q\n";
+    stream+="q 0.82 0.05 0.28 rg 48 54 499 1 re f Q\n";
     pg.forEach((line,i)=>{
       const y=780-i*20;
       const main=i<3;
       const head=/^(CONTRATTO |SERVIZIO |ART\\. |DATI |SOTTOSCRIZIONE)/.test(line);
       if(line.startsWith("TOTALE CONTRATTO:")){
-        stream+="q 0.95 0.96 0.92 rg 44 "+(y-9)+" 507 24 re f Q\\n";
-        stream+="0.36 0.44 0.21 rg\\n/F2 13 Tf\\n1 0 0 1 48 "+y+" Tm ("+pdfEscape(line)+") Tj\\n";
+        stream+="q 0.95 0.96 0.92 rg 44 "+(y-9)+" 507 24 re f Q\n";
+        stream+="0.36 0.44 0.21 rg\n/F2 13 Tf\n1 0 0 1 48 "+y+" Tm ("+pdfEscape(line)+") Tj\n";
       }else{
-        stream+=(main?"0.36 0.44 0.21 rg\\n/F2 11 Tf\\n":head?"0.82 0.05 0.28 rg\\n/F2 10 Tf\\n":"0.13 0.13 0.13 rg\\n/F1 9.2 Tf\\n");
-        stream+="1 0 0 1 48 "+y+" Tm ("+pdfEscape(line)+") Tj\\n";
+        stream+=(main?"0.36 0.44 0.21 rg\n/F2 11 Tf\n":head?"0.82 0.05 0.28 rg\n/F2 10 Tf\n":"0.13 0.13 0.13 rg\n/F1 9.2 Tf\n");
+        stream+="1 0 0 1 48 "+y+" Tm ("+pdfEscape(line)+") Tj\n";
       }
     });
-    const content="BT\\n"+stream+"ET\\n";
-    const sid=obj("<< /Length "+Buffer.byteLength(content,"latin1")+" >>\\nstream\\n"+content+"endstream");
+    const content="BT\n"+stream+"ET\n";
+    const sid=obj("<< /Length "+Buffer.byteLength(content,"latin1")+" >>\nstream\n"+content+"endstream");
     pageIds.push(obj("<< /Type /Page /Parent "+pages+" 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 "+font+" 0 R /F2 "+bold+" 0 R >> >> /Contents "+sid+" 0 R >>"));
   }
   objects[pages-1]="<< /Type /Pages /Kids ["+pageIds.map(x=>x+" 0 R").join(" ")+"] /Count "+pageIds.length+" >>";
   const catalog=obj("<< /Type /Catalog /Pages "+pages+" 0 R >>");
-  const chunks=["%PDF-1.4\\n"];
+  const chunks=["%PDF-1.4\n"];
   const offsets=[0];
   let offset=Buffer.byteLength(chunks[0],"latin1");
   for(let i=0;i<objects.length;i++){
-    const o=(i+1)+" 0 obj\\n"+objects[i]+"\\nendobj\\n";
+    const o=(i+1)+" 0 obj\n"+objects[i]+"\nendobj\n";
     offsets.push(offset);chunks.push(o);offset+=Buffer.byteLength(o,"latin1");
   }
   const xref=offset;
-  chunks.push("xref\\n0 "+(objects.length+1)+"\\n0000000000 65535 f \\n");
-  for(let i=1;i<=objects.length;i++)chunks.push(String(offsets[i]).padStart(10,"0")+" 00000 n \\n");
-  chunks.push("trailer\\n<< /Size "+(objects.length+1)+" /Root "+catalog+" 0 R >>\\nstartxref\\n"+xref+"\\n%%EOF");
+  chunks.push("xref\n0 "+(objects.length+1)+"\n0000000000 65535 f \n");
+  for(let i=1;i<=objects.length;i++)chunks.push(String(offsets[i]).padStart(10,"0")+" 00000 n \n");
+  chunks.push("trailer\n<< /Size "+(objects.length+1)+" /Root "+catalog+" 0 R >>\nstartxref\n"+xref+"\n%%EOF");
   return new Uint8Array(Buffer.from(chunks.join(""),"latin1"));
 }
 
