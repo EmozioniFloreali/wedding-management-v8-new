@@ -37,8 +37,24 @@ async function sendCoupleMessage(formData: FormData) {
     if (created.error) throw new Error(created.error.message);
     conversation = created.data;
   }
-  const { error } = await supabase.from("messages").insert({ conversation_id: conversation.id, sender_id: user.id, body, status: "inviato" });
+  const { data: message, error } = await supabase
+    .from("messages")
+    .insert({
+      conversation_id: conversation.id,
+      sender_id: user.id,
+      body,
+      status: "inviato",
+    })
+    .select("id")
+    .single();
   if (error) throw new Error(error.message);
+
+  const { error: notificationError } = await supabase.rpc("notify_admin_new_couple_message", {
+    p_couple_id: coupleId,
+    p_message_id: message.id,
+  });
+  if (notificationError) throw new Error(notificationError.message);
+
   revalidatePath(`/protected/area-sposi/${coupleId}`);
 }
 
