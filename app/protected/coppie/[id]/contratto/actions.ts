@@ -175,7 +175,17 @@ export async function generaContratto(formData: FormData) {
   });
 
   const safeCouple = `${couple.partner1_last_name || "coppia"}-${couple.partner2_last_name || "sposi"}`.replace(/[^a-zA-Z0-9À-ÿ_-]/g, "-");
-  const filename = `Contratto_d_opera_${safeCouple}.pdf`;
+
+  // Le versioni del contratto sono documenti in client_documents.
+  // Il database V8 NEW non prevede una tabella "contracts".
+  const { count: previousContractCount } = await supabase
+    .from("client_documents")
+    .select("id", { count: "exact", head: true })
+    .eq("couple_id", coupleId)
+    .eq("category", "contratto");
+
+  const contractVersion = (previousContractCount || 0) + 1;
+  const filename = `Contratto_d_opera_${safeCouple}_V${contractVersion}.pdf`;
   const storagePath = `${coupleId}/contratti/${crypto.randomUUID()}-${filename}`;
 
   const { error: uploadError } = await supabase.storage
@@ -203,37 +213,6 @@ export async function generaContratto(formData: FormData) {
   if (documentError || !document) {
     await supabase.storage.from("client-documents").remove([storagePath]);
     throw new Error(`Errore registrazione contratto: ${documentError?.message || "documento non creato"}`);
-  }
-
-  if (quote?.id) {
-    const { data: latestContract } = await supabase
-      .from("contracts")
-      .select("version_number")
-      .eq("couple_id", coupleId)
-      .order("version_number", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    const { error: contractError } = await supabase.from("contracts").insert({
-      couple_id: coupleId,
-      wedding_id: wedding?.id || null,
-      quote_id: quote.id,
-      floral_project_id: project.id,
-      document_id: document.id,
-      version_number: Number(latestContract?.version_number || 0) + 1,
-      contract_date: new Date().toISOString().slice(0, 10),
-      total_amount: contractTotal,
-      deposit_amount: contractDeposit,
-      balance_amount: contractBalance,
-      notes: "Generato dalle voci confermate del Progetto Floreale.",
-      created_by: user.id,
-    });
-
-    if (contractError) {
-      await supabase.from("client_documents").delete().eq("id", document.id);
-      await supabase.storage.from("client-documents").remove([storagePath]);
-      throw new Error(`Errore registrazione contratto: ${contractError.message}`);
-    }
   }
 
   revalidatePath(`/protected/coppie/${coupleId}/progetto`);
