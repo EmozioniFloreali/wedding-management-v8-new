@@ -470,7 +470,7 @@ export default async function PreventivoPage({
         )}
         {query.success && !query.error && (
           <div className="mb-6 rounded-2xl border border-emerald-300 bg-emerald-50 p-5 text-sm text-emerald-900">
-            <div className="font-bold">Preventivo presentato e contratto generato correttamente.</div>
+            <div className="font-bold">Preventivo salvato e voci aggiornate correttamente.</div>
           </div>
         )}
         <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
