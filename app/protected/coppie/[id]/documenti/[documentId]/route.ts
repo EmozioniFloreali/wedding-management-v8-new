@@ -27,6 +27,16 @@ export async function GET(
 
   const isAdmin = profile?.role === "admin";
 
+  const { data: coupleAccess } = await supabase
+    .from("couples")
+    .select("portal_enabled")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (!isAdmin && !coupleAccess?.portal_enabled) {
+    return new NextResponse("Area Sposi non disponibile", { status: 403 });
+  }
+
   if (!isAdmin) {
     const { data: member } = await supabase
       .from("couple_members")
