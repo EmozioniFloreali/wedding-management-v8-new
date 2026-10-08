@@ -14,13 +14,7 @@ import { Users, Plus, ArrowLeft, CalendarDays } from "lucide-react";
 export const instant = false;
 
 export default async function CoppiePage() {
-  const supabase = await createClient();
-
-  const { data: userData, error: userError } = await supabase.auth.getUser();
-
-  if (userError || !userData.user) {
-    redirect("/auth/login");
-  }
+  const { supabase } = await requireAdmin();
 
   const { data: couples, error } = await supabase
     .from("couples")
