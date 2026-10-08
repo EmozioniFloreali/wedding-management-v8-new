@@ -50,18 +50,16 @@ async function updateCouple(formData: FormData) {
 }
 
 export default async function ModificaCoppiaPage({
-  await requireAdmin();
   params,
   searchParams,
 }: {
   params: Promise<{ id: string }>;
   searchParams: Promise<{ error?: string }>;
 }) {
+  await requireAdmin();
   const { id } = await params;
   const query = await searchParams;
-  const supabase = await createClient();
-  const { data: userData, error: userError } = await supabase.auth.getUser();
-  if (userError || !userData.user) redirect("/auth/login");
+  const { supabase } = await requireAdmin();
 
   const { data: couple, error } = await supabase
     .from("couples")
