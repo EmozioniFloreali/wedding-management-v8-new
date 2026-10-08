@@ -361,21 +361,35 @@ export default async function CoupleDetailPage({ params }: PageProps) {
               Preventivi, contratti e documenti.
             </p>
 
-            <Link
-              href={`/protected/coppie/${couple.id}/preventivo`}
-              className="mt-5 inline-flex w-full items-center justify-center rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background hover:opacity-90"
-            >
-              Apri preventivi
-            </Link>
+            <div className="mt-5 space-y-2">
+              <Link
+                href={`/protected/coppie/${couple.id}/preventivo`}
+                className="inline-flex w-full items-center justify-center rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background hover:opacity-90"
+              >
+                Apri preventivi
+              </Link>
 
-            <Link
-              href={`/protected/coppie/${couple.id}/contratti`}
-              className="mt-2 inline-flex w-full items-center justify-center rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted"
-            >
-              Apri contratti
-            </Link>
-              <Link href={`/protected/coppie/${couple.id}/pagamenti`} className="rounded-xl border bg-white px-4 py-3 font-medium shadow-sm">Pagamenti e quietanze</Link>
-              <Link href={`/protected/coppie/${couple.id}/documenti`} className="rounded-xl border bg-white px-4 py-3 font-medium shadow-sm">Documenti</Link>
+              <Link
+                href={`/protected/coppie/${couple.id}/contratti`}
+                className="inline-flex w-full items-center justify-center rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted"
+              >
+                Apri contratti
+              </Link>
+
+              <Link
+                href={`/protected/coppie/${couple.id}/pagamenti`}
+                className="inline-flex w-full items-center justify-center rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted"
+              >
+                Pagamenti e quietanze
+              </Link>
+
+              <Link
+                href={`/protected/coppie/${couple.id}/documenti`}
+                className="inline-flex w-full items-center justify-center rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted"
+              >
+                Documenti
+              </Link>
+            </div>
           </div>
         </div>
 
