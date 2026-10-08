@@ -26,6 +26,7 @@ function categoryLabel(value: string | null) {
 }
 
 export async function generaContratto(formData: FormData) {
+  const returnToPreventivo = String(formData.get("return_to_preventivo") || "").trim();
   const coupleId = String(formData.get("couple_id") || "").trim();
   if (!coupleId) redirect("/protected/coppie");
 
@@ -279,7 +280,7 @@ export async function generaContratto(formData: FormData) {
 
   const { error: uploadError } = await supabase.storage
     .from("client-documents")
-    .upload(storagePath, Buffer.from(pdf), { contentType: "application/pdf", upsert: false });
+    .upload(storagePath, new Blob([pdf], { type: "application/pdf" }), { contentType: "application/pdf", upsert: false });
 
   if (uploadError) {
     await supabase.from("contract_items").delete().eq("contract_id", contract.id);
@@ -330,5 +331,6 @@ export async function generaContratto(formData: FormData) {
   revalidatePath(`/protected/coppie/${coupleId}/progetto`);
   revalidatePath(`/protected/coppie/${coupleId}/preventivo`);
   revalidatePath(`/protected/coppie/${coupleId}`);
+  if (returnToPreventivo) return { success: true, contractId: contract.id, documentId: document.id };
   redirect(`/protected/coppie/${coupleId}/contratti`);
 }
