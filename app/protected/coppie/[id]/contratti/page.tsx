@@ -1,9 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-
-export const instant = false;
-
 function money(value: number | string | null | undefined) {
   return Number(value ?? 0).toLocaleString("it-IT", {
     style: "currency",
