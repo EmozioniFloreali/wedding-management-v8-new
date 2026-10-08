@@ -211,7 +211,7 @@ export async function generaContratto(formData: FormData) {
     await supabase.from("contracts").delete().eq("id", existingContract.id);
   }
 
-  const contractVersion = Number(latestContract?.version_number || 0) + 1;
+  const contractVersion = Number(quote?.version_number || latestContract?.version_number || 0);
   const contractDateIso = new Date().toISOString().slice(0, 10);
 
   const { data: contract, error: contractError } = await supabase
