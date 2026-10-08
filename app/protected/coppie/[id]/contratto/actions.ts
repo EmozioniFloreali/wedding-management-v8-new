@@ -94,28 +94,30 @@ export async function generaContratto(formData: FormData) {
     })
     .join("\n");
 
-  const { data: quote } = await supabase
-    .from("quotes")
-    .select("id,status,total_amount,deposit_required,vat_rate,notes,created_at")
-    .eq("couple_id", coupleId)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  const requestedQuoteId = String(formData.get("quote_id") || "").trim();
+  const quoteQuery = requestedQuoteId
+    ? supabase.from("quotes").select("id,wedding_id,status,version_number,total_amount,deposit_amount,vat_included,notes,created_at").eq("id", requestedQuoteId).eq("couple_id", coupleId).maybeSingle()
+    : supabase.from("quotes").select("id,wedding_id,status,version_number,total_amount,deposit_amount,vat_included,notes,created_at").eq("couple_id", coupleId).order("version_number", { ascending: false }).limit(1).maybeSingle();
+
+  const { data: quote, error: quoteError } = await quoteQuery;
+  if (quoteError) throw new Error(quoteError.message);
 
   let quoteData = null;
   if (quote) {
-    const { data: quoteItems } = await supabase
+    const { data: quoteItems, error: quoteItemsError } = await supabase
       .from("quote_items")
-      .select("description,quantity,unit,notes,sort_order")
+      .select("id,floral_project_item_id,description,quantity,unit,notes,sort_order")
       .eq("quote_id", quote.id)
       .order("sort_order", { ascending: true });
 
+    if (quoteItemsError) throw new Error(quoteItemsError.message);
+
     const total = moneyNumber(quote.total_amount);
-    const deposit = Math.min(total, Math.max(0, moneyNumber(quote.deposit_required)));
+    const deposit = Math.min(total, Math.max(0, moneyNumber(quote.deposit_amount)));
 
     quoteData = {
       status: quote.status,
-      vatRate: moneyNumber(quote.vat_rate),
+      vatRate: quote.vat_included ? 10 : 0,
       total,
       deposit,
       balance: Math.max(0, total - deposit),
@@ -176,35 +178,109 @@ export async function generaContratto(formData: FormData) {
 
   const safeCouple = `${couple.partner1_last_name || "coppia"}-${couple.partner2_last_name || "sposi"}`.replace(/[^a-zA-Z0-9À-ÿ_-]/g, "-");
 
-  // Le versioni del contratto sono documenti in client_documents.
-  // Il database V8 NEW non prevede una tabella "contracts".
-  const { count: previousContractCount } = await supabase
-    .from("client_documents")
-    .select("id", { count: "exact", head: true })
+  // Il contratto è una vera entità di V8 NEW. Le versioni sono registrate
+  // nella tabella contracts e le singole lavorazioni in contract_items.
+  const { data: latestContract } = await supabase
+    .from("contracts")
+    .select("version_number")
     .eq("couple_id", coupleId)
-    .eq("category", "contratto");
+    .order("version_number", { ascending: false })
+    .limit(1)
+    .maybeSingle();
 
-  const contractVersion = (previousContractCount || 0) + 1;
+  const contractVersion = Number(latestContract?.version_number || 0) + 1;
+  const contractTotal = quoteData?.total ?? moneyNumber(project.total_amount);
+  const contractDeposit = quoteData?.deposit ?? 0;
+  const contractBalance = Math.max(0, contractTotal - contractDeposit);
+  const contractDateIso = new Date().toISOString().slice(0, 10);
+
+  const { data: contract, error: contractError } = await supabase
+    .from("contracts")
+    .insert({
+      couple_id: coupleId,
+      wedding_id: wedding?.id || quote?.wedding_id || null,
+      quote_id: quote?.id || null,
+      floral_project_id: project.id,
+      version_number: contractVersion,
+      contract_date: contractDateIso,
+      total_amount: contractTotal,
+      deposit_amount: contractDeposit,
+      balance_amount: contractBalance,
+      notes: quote?.notes || project.notes || null,
+      signed_by_client: false,
+      created_by: user.id,
+    })
+    .select("id")
+    .single();
+
+  if (contractError || !contract) {
+    throw new Error(`Errore creazione contratto: ${contractError?.message || "contratto non creato"}`);
+  }
+
+  const contractItemRows = (rawItems || []).map((item: any, index: number) => ({
+    contract_id: contract.id,
+    quote_item_id: null,
+    floral_project_item_id: item.id,
+    area: categoryLabel(item.category) || item.category || "Progetto floreale",
+    description: item.description ? `${item.name} — ${item.description}` : (item.name || item.description || "Lavorazione floreale"),
+    quantity: item.quantity ?? 1,
+    unit: item.unit || "pz",
+    notes: item.notes || null,
+    sort_order: index + 1,
+  }));
+
+  if (sectionNotes) {
+    contractItemRows.push({
+      contract_id: contract.id,
+      quote_item_id: null,
+      floral_project_item_id: null,
+      area: "Progetto floreale",
+      description: sectionNotes,
+      quantity: 1,
+      unit: "specifica",
+      notes: null,
+      sort_order: contractItemRows.length + 1,
+    });
+  }
+
+  if (contractItemRows.length) {
+    const { error: contractItemsError } = await supabase
+      .from("contract_items")
+      .insert(contractItemRows);
+
+    if (contractItemsError) {
+      await supabase.from("contracts").delete().eq("id", contract.id);
+      throw new Error(`Errore registrazione voci contratto: ${contractItemsError.message}`);
+    }
+  }
+
   const filename = `Contratto_d_opera_${safeCouple}_V${contractVersion}.pdf`;
   const storagePath = `${coupleId}/contratti/${crypto.randomUUID()}-${filename}`;
 
   const { error: uploadError } = await supabase.storage
     .from("client-documents")
     .upload(storagePath, pdf, { contentType: "application/pdf", upsert: false });
-  if (uploadError) throw new Error(`Errore caricamento contratto: ${uploadError.message}`);
+
+  if (uploadError) {
+    await supabase.from("contract_items").delete().eq("contract_id", contract.id);
+    await supabase.from("contracts").delete().eq("id", contract.id);
+    throw new Error(`Errore caricamento contratto: ${uploadError.message}`);
+  }
 
   const { data: document, error: documentError } = await supabase
     .from("client_documents")
     .insert({
       couple_id: coupleId,
+      wedding_id: wedding?.id || quote?.wedding_id || null,
       quote_id: quote?.id || null,
+      floral_project_id: project.id,
       name: filename,
       category: "contratto",
       storage_path: storagePath,
       mime_type: "application/pdf",
       file_size: pdf.byteLength,
       visible_to_couple: false,
-      notes: `Contratto generato automaticamente dalle voci confermate del Progetto Floreale${quote ? " e dal Preventivo" : ""}. Verificare prima della sottoscrizione.`,
+      notes: `Contratto V${contractVersion} generato automaticamente dal Progetto Floreale e dal Preventivo V${quote?.version_number || "—"}.`,
       uploaded_by: user.id,
     })
     .select("id")
@@ -212,11 +288,23 @@ export async function generaContratto(formData: FormData) {
 
   if (documentError || !document) {
     await supabase.storage.from("client-documents").remove([storagePath]);
-    throw new Error(`Errore registrazione contratto: ${documentError?.message || "documento non creato"}`);
+    await supabase.from("contract_items").delete().eq("contract_id", contract.id);
+    await supabase.from("contracts").delete().eq("id", contract.id);
+    throw new Error(`Errore registrazione documento contratto: ${documentError?.message || "documento non creato"}`);
   }
 
+  const { error: linkError } = await supabase
+    .from("contracts")
+    .update({ document_id: document.id, updated_at: new Date().toISOString() })
+    .eq("id", contract.id);
+
+  if (linkError) {
+    throw new Error(`Documento creato ma collegamento al contratto non riuscito: ${linkError.message}`);
+  }
+
+  revalidatePath(`/protected/coppie/${coupleId}/contratti`);
   revalidatePath(`/protected/coppie/${coupleId}/progetto`);
   revalidatePath(`/protected/coppie/${coupleId}/preventivo`);
   revalidatePath(`/protected/coppie/${coupleId}`);
-  redirect(`/protected/coppie/${coupleId}/documenti/${document.id}`);
+  redirect(`/protected/coppie/${coupleId}/contratti`);
 }
