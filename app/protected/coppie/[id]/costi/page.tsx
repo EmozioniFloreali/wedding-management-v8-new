@@ -293,23 +293,23 @@ async function CostiMatrimonioContent({
           </header>
           <section className="cost-report-info">
             <h2>Dati del matrimonio</h2>
-            <p><strong>Coppia:</strong> \${coupleName}</p>
-            <p><strong>Data:</strong> \${new Date(wedding.wedding_date).toLocaleDateString("it-IT")}</p>
-            {wedding.wedding_time && <p><strong>Ora:</strong> \${wedding.wedding_time}</p>}
-            {wedding.church && <p><strong>Chiesa:</strong> \${wedding.church}</p>}
-            {wedding.reception_hall && <p><strong>Sala ricevimenti:</strong> \${wedding.reception_hall}</p>}
-            {wedding.venue && <p><strong>Location:</strong> \${wedding.venue}</p>}
-            <p><strong>Data stampa:</strong> \${new Date().toLocaleDateString("it-IT")}</p>
+            <p><strong>Coppia:</strong> {coupleName}</p>
+            <p><strong>Data:</strong> {new Date(wedding.wedding_date).toLocaleDateString("it-IT")}</p>
+            {wedding.wedding_time && <p><strong>Ora:</strong> {wedding.wedding_time}</p>}
+            {wedding.church && <p><strong>Chiesa:</strong> {wedding.church}</p>}
+            {wedding.reception_hall && <p><strong>Sala ricevimenti:</strong> {wedding.reception_hall}</p>}
+            {wedding.venue && <p><strong>Location:</strong> {wedding.venue}</p>}
+            <p><strong>Data stampa:</strong> {new Date().toLocaleDateString("it-IT")}</p>
           </section>
           <section className="cost-report-totals">
             <h2>Riepilogo economico</h2>
             <table><tbody>
-              <tr><th>Totale costi previsti</th><td>\${euro(estimatedTotal)}</td></tr>
-              <tr><th>Totale costi effettivi</th><td>\${euro(actualTotal)}</td></tr>
-              <tr><th>Scostamento costi (effettivi − previsti)</th><td>\${euro(actualTotal - estimatedTotal)}</td></tr>
-              <tr><th>Ricavo di riferimento</th><td>\${euro(referenceRevenue)}</td></tr>
-              <tr><th>Margine previsto</th><td>\${euro(estimatedMargin)}</td></tr>
-              <tr><th>Margine attuale su costi effettivi</th><td>\${euro(actualMargin)}</td></tr>
+              <tr><th>Totale costi previsti</th><td>{euro(estimatedTotal)}</td></tr>
+              <tr><th>Totale costi effettivi</th><td>{euro(actualTotal)}</td></tr>
+              <tr><th>Scostamento costi (effettivi − previsti)</th><td>{euro(actualTotal - estimatedTotal)}</td></tr>
+              <tr><th>Ricavo di riferimento</th><td>{euro(referenceRevenue)}</td></tr>
+              <tr><th>Margine previsto</th><td>{euro(estimatedMargin)}</td></tr>
+              <tr><th>Margine attuale su costi effettivi</th><td>{euro(actualMargin)}</td></tr>
             </tbody></table>
           </section>
           <section className="cost-report-categories">
@@ -321,7 +321,7 @@ async function CostiMatrimonioContent({
                   const categoryRows = rows.filter((row) => row.category === value);
                   const categoryEstimated = categoryRows.reduce((sum, row) => sum + Number(row.estimated_amount || 0), 0);
                   const categoryActual = categoryRows.reduce((sum, row) => sum + Number(row.actual_amount || 0), 0);
-                  return <tr key={value}><td>{label}</td><td>\${euro(categoryEstimated)}</td><td>\${euro(categoryActual)}</td><td>\${euro(categoryActual - categoryEstimated)}</td></tr>;
+                  return <tr key={value}><td>{label}</td><td>{euro(categoryEstimated)}</td><td>{euro(categoryActual)}</td><td>{euro(categoryActual - categoryEstimated)}</td></tr>;
                 })}
               </tbody>
             </table>
@@ -331,7 +331,7 @@ async function CostiMatrimonioContent({
             {rows.length === 0 ? <p>Nessuna spesa registrata.</p> : (
               <table>
                 <thead><tr><th>Descrizione</th><th>Categoria</th><th>Stato</th><th>Previsto</th><th>Effettivo</th><th>Scostamento</th><th>Note</th></tr></thead>
-                <tbody>{rows.map((row) => <tr key={row.id}><td>{row.description}</td><td>{categoryLabel(row.category)}</td><td>{statusLabel(row.status)}</td><td>\${euro(Number(row.estimated_amount || 0))}</td><td>\${euro(Number(row.actual_amount || 0))}</td><td>\${euro(Number(row.actual_amount || 0) - Number(row.estimated_amount || 0))}</td><td>{row.notes || "—"}</td></tr>)}</tbody>
+                <tbody>{rows.map((row) => <tr key={row.id}><td>{row.description}</td><td>{categoryLabel(row.category)}</td><td>{statusLabel(row.status)}</td><td>{euro(Number(row.estimated_amount || 0))}</td><td>{euro(Number(row.actual_amount || 0))}</td><td>{euro(Number(row.actual_amount || 0) - Number(row.estimated_amount || 0))}</td><td>{row.notes || "—"}</td></tr>)}</tbody>
               </table>
             )}
           </section>
