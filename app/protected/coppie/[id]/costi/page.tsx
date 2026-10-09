@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import PrintCostReportButton from "@/components/print-cost-report-button";
 
 const CATEGORIES = [
   ["fiori", "Costo fiori"],
@@ -213,8 +214,11 @@ async function CostiMatrimonioContent({
               <h1 className="text-3xl font-bold">Costi e rendiconto</h1>
               <p className="mt-1 text-slate-600">{coupleName}</p>
             </div>
-            <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-900">
-              🔒 Visibile esclusivamente a te
+            <div className="flex flex-wrap items-center gap-3">
+              <PrintCostReportButton />
+              <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-900">
+                🔒 Visibile esclusivamente a te
+              </div>
             </div>
           </div>
         </div>
