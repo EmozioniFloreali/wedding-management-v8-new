@@ -83,3 +83,35 @@
   .ef-button-primary, .ef-button-secondary { min-height: 44px; }
   .ef-section-title { align-items:flex-start; flex-direction:column; }
 }
+
+
+/* Printable internal wedding cost report */
+.print-only { display: none; }
+@media print {
+  @page { size: A4 portrait; margin: 14mm; }
+  body * { visibility: hidden !important; }
+  #cost-report-print, #cost-report-print * { visibility: visible !important; }
+  #cost-report-print {
+    display: block !important;
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 100%;
+    color: #1f2933 !important;
+    background: #fff !important;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 9pt;
+  }
+  #cost-report-print h1 { margin: 8mm 0 2mm; font-size: 17pt; color: #36563c !important; text-align: center; }
+  #cost-report-print h2 { margin: 5mm 0 2mm; padding-bottom: 1.5mm; border-bottom: 1px solid #c79a62; font-size: 11pt; color: #36563c !important; }
+  .cost-report-header { text-align: center; border-bottom: 2px solid #c79a62; padding-bottom: 4mm; }
+  .cost-report-brand { margin: 0; font-family: Georgia, serif; font-size: 19pt; font-weight: bold; letter-spacing: 1.5pt; color: #526b3b !important; }
+  .cost-report-subtitle { margin: 1mm 0; font-size: 9pt; }
+  .cost-report-confidential { margin: 2mm 0 0; font-size: 8pt; color: #6b7280 !important; }
+  .cost-report-info p { margin: 1mm 0; }
+  #cost-report-print table { width: 100%; border-collapse: collapse; margin: 2mm 0 4mm; font-size: 8pt; }
+  #cost-report-print th, #cost-report-print td { border: 1px solid #d1d5db; padding: 2mm; text-align: left; vertical-align: top; overflow-wrap: anywhere; }
+  #cost-report-print th { background: #f3f4f0 !important; font-weight: bold; }
+  .cost-report-totals td { text-align: right !important; font-weight: bold; }
+  #cost-report-print tr { break-inside: avoid; }
+  .cost-report-footer { margin-top: 6mm; padding-top: 3mm; border-top: 1px solid #d1d5db; font-size: 7.5pt; color: #6b7280 !important; }
+}
