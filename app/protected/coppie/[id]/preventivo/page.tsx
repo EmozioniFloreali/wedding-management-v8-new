@@ -250,6 +250,68 @@ async function salvaPreventivo(formData: FormData) {
   }
 }
 
+async function confermaPreventivoManualmente(formData: FormData) {
+  "use server";
+  const { supabase } = await getAdmin();
+  const coupleId = value(formData, "couple_id");
+  const quoteId = value(formData, "quote_id");
+  if (!coupleId || !quoteId) return;
+
+  const { data: couple, error: coupleError } = await supabase
+    .from("couples")
+    .select("id,portal_enabled")
+    .eq("id", coupleId)
+    .maybeSingle();
+  if (coupleError) throw new Error(coupleError.message);
+  if (!couple) throw new Error("Coppia non trovata.");
+  if (couple.portal_enabled) {
+    throw new Error("La conferma manuale è disponibile solo quando l'Area Sposi è disabilitata.");
+  }
+
+  const { data: quote, error: quoteError } = await supabase
+    .from("quotes")
+    .select("id,couple_id,status,confirmed_at")
+    .eq("id", quoteId)
+    .eq("couple_id", coupleId)
+    .maybeSingle();
+  if (quoteError) throw new Error(quoteError.message);
+  if (!quote) throw new Error("Preventivo non trovato.");
+  if (!["presentato", "in_attesa_conferma", "confermato"].includes(quote.status)) {
+    redirect(`/protected/coppie/${coupleId}/preventivo?error=${encodeURIComponent("Per confermare manualmente, il preventivo deve essere già stato presentato.")}`);
+  }
+
+  // Prima garantiamo che il contratto esista; solo dopo registriamo la conferma.
+  // In questo modo un errore PDF/storage non lascia il preventivo confermato senza contratto.
+  const contractForm = new FormData();
+  contractForm.set("couple_id", coupleId);
+  contractForm.set("quote_id", quoteId);
+  contractForm.set("return_to_preventivo", "1");
+
+  try {
+    await generaContratto(contractForm);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Errore durante la generazione del contratto.";
+    redirect(`/protected/coppie/${coupleId}/preventivo?error=${encodeURIComponent(message)}`);
+  }
+
+  const { error: updateError } = await supabase
+    .from("quotes")
+    .update({
+      status: "confermato",
+      confirmed_at: quote.confirmed_at || new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", quoteId)
+    .eq("couple_id", coupleId);
+  if (updateError) throw new Error(`Contratto generato, ma aggiornamento dello stato non riuscito: ${updateError.message}`);
+
+  revalidatePath(`/protected/coppie/${coupleId}/preventivo`);
+  revalidatePath(`/protected/coppie/${coupleId}/contratti`);
+  revalidatePath(`/protected/coppie/${coupleId}/documenti`);
+  revalidatePath(`/protected/coppie/${coupleId}`);
+  redirect(`/protected/coppie/${coupleId}/preventivo?success=manual-confirmation`);
+}
+
 async function creaNuovaVersione(formData: FormData) {
   "use server";
   const { supabase, user } = await getAdmin();
@@ -430,7 +492,7 @@ export default async function PreventivoPage({
   const { supabase } = await getAdmin();
 
   const { data: couple } = await supabase.from("couples")
-    .select("id,partner1_first_name,partner1_last_name,partner2_first_name,partner2_last_name")
+    .select("id,partner1_first_name,partner1_last_name,partner2_first_name,partner2_last_name,portal_enabled")
     .eq("id", coupleId).maybeSingle();
   if (!couple) redirect("/protected/coppie");
 
@@ -451,6 +513,10 @@ export default async function PreventivoPage({
   const { data: documents } = await supabase.from("client_documents")
     .select("*").eq("couple_id", coupleId).order("created_at", { ascending: false });
 
+  const { data: linkedContract } = quote
+    ? await supabase.from("contracts").select("id,document_id").eq("quote_id", quote.id).order("created_at", { ascending: false }).limit(1).maybeSingle()
+    : { data: null };
+
   const coupleName = [couple.partner1_first_name, couple.partner1_last_name, couple.partner2_first_name, couple.partner2_last_name].filter(Boolean).join(" ");
   const total = Number(quote?.total_amount ?? project.total_amount ?? 0);
   const deposit = Number(quote?.deposit_amount ?? 0);
@@ -470,7 +536,7 @@ export default async function PreventivoPage({
         )}
         {query.success && !query.error && (
           <div className="mb-6 rounded-2xl border border-primary/20 bg-secondary p-5 text-sm text-primary">
-            <div className="font-bold">Preventivo salvato e voci aggiornate correttamente.</div>
+            <div className="font-bold">{query.success === "manual-confirmation" ? "Preventivo confermato manualmente e contratto disponibile." : "Preventivo salvato e voci aggiornate correttamente."}</div>
           </div>
         )}
         <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -485,6 +551,15 @@ export default async function PreventivoPage({
           <div className="flex flex-wrap gap-2">
             {uiStatus(quote?.status) === "confermato" ? <div className="rounded-xl bg-secondary px-4 py-3 text-sm font-semibold text-primary">✓ Preventivo confermato. Il contratto era già stato generato alla presentazione.</div> : <div className="rounded-xl border border-primary/20 bg-secondary px-4 py-3 text-sm text-primary">Il contratto viene generato automaticamente quando il preventivo viene presentato. La conferma della coppia registra la decisione degli sposi.</div>}
             <Link href={`/protected/coppie/${coupleId}/progetto`} className="rounded-xl border border-border bg-card px-4 py-3 text-sm font-semibold">Progetto floreale</Link>
+            {quote && !couple.portal_enabled && ["presentato", "in_attesa_conferma", "confermato"].includes(quote.status) && (
+              <form action={confermaPreventivoManualmente} className="w-full rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950 lg:w-auto">
+                <input type="hidden" name="couple_id" value={coupleId} />
+                <input type="hidden" name="quote_id" value={quote.id} />
+                <p className="mb-2 font-semibold">Area Sposi disabilitata</p>
+                <p className="mb-3">Puoi registrare qui la conferma ricevuta direttamente dai clienti e assicurarti che il contratto sia generato.</p>
+                <button className="ef-button-primary" type="submit">{quote.status === "confermato" && linkedContract?.document_id ? "Verifica / rigenera collegamento contratto" : "Conferma manualmente e genera contratto"}</button>
+              </form>
+            )}
             {quote && (
               <>
                 <Link
