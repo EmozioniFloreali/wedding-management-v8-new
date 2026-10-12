@@ -31,7 +31,7 @@ export async function GET(request:NextRequest,{params}:{params:Promise<{id:strin
     supabase.from("quotes").select("status,total_amount,deposit_amount,vat_included,notes").eq("id",contract.quote_id||"").maybeSingle()
   ]);
 
-  const quoteItems=contract.quote_id?await supabase.from("quote_items").select("description,quantity,unit").eq("quote_id",contract.quote_id).order("sort_order",{ascending:true}):{data:[]};
+  const quoteItems=contract.quote_id?await supabase.from("quote_items").select("description,quantity,unit,area").eq("quote_id",contract.quote_id).order("sort_order",{ascending:true}):{data:[]};
   const data={
     contractDate:contract.contract_date?new Intl.DateTimeFormat("it-IT",{dateStyle:"long",timeZone:"Europe/Rome"}).format(new Date(contract.contract_date+"T12:00:00")):new Date().toLocaleDateString("it-IT"),
     versionNumber:contract.version_number,
@@ -39,7 +39,7 @@ export async function GET(request:NextRequest,{params}:{params:Promise<{id:strin
     wedding:{date:wedding?.wedding_date,time:wedding?.wedding_time,venue:wedding?.venue,church:wedding?.church||wedding?.ceremony_location,reception:wedding?.reception_hall},
     project:{name:project?.name||"Progetto Floreale",status:project?.status,notes:project?.notes,total:contract.total_amount},
     items:(items||[]).map((it:any)=>({name:it.name||it.description||"Lavorazione floreale",category:it.category,description:it.description,quantity:Number(it.quantity??1),unit:it.unit||"pz",notes:it.notes})),
-    quote:quote?{status:quote.status,vatRate:quote.vat_included?10:0,total:Number(quote.total_amount??contract.total_amount??0),deposit:Number(quote.deposit_amount??contract.deposit_amount??0),balance:Number(contract.balance_amount??0),discount:0,notes:quote.notes,items:(quoteItems.data||[]).map((it:any)=>({description:it.description,quantity:Number(it.quantity??1),unit:it.unit||"pz"}))}:null
+    quote:quote?{status:quote.status,vatRate:quote.vat_included?10:0,total:Number(quote.total_amount??contract.total_amount??0),deposit:Number(quote.deposit_amount??contract.deposit_amount??0),balance:Number(contract.balance_amount??0),discount:0,notes:quote.notes,items:(quoteItems.data||[]).map((it:any)=>({area:it.area,description:it.description,quantity:Number(it.quantity??1),unit:it.unit||"pz"}))}:null
   };
 
   const coupleSlug=safeName(data.couple.first+"_"+data.couple.second)||"coppia";
