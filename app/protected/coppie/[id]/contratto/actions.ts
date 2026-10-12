@@ -114,7 +114,7 @@ export async function generaContratto(formData: FormData) {
   if (quote) {
     const { data: quoteItems, error: quoteItemsError } = await supabase
       .from("quote_items")
-      .select("id,floral_project_item_id,description,quantity,unit,notes,sort_order")
+      .select("id,floral_project_item_id,area,description,quantity,unit,notes,sort_order")
       .eq("quote_id", quote.id)
       .order("sort_order", { ascending: true });
 
@@ -132,6 +132,7 @@ export async function generaContratto(formData: FormData) {
       discount: 0,
       notes: quote.notes,
       items: (quoteItems || []).map((item: any) => ({
+        area: item.area || null,
         description: item.description,
         quantity: moneyNumber(item.quantity),
         unit: item.unit || "pz",
