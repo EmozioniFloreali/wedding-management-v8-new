@@ -209,6 +209,10 @@ export async function generaContratto(formData: FormData) {
 
   if (existingContract?.document_id) {
     revalidatePath(`/protected/coppie/${coupleId}/contratti`);
+    revalidatePath(`/protected/coppie/${coupleId}/preventivo`);
+    if (returnToPreventivo) {
+      return { success: true, contractId: existingContract.id, documentId: existingContract.document_id };
+    }
     redirect(`/protected/coppie/${coupleId}/contratti`);
   }
 
