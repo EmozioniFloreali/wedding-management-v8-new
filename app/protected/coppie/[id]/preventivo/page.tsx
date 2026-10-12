@@ -551,13 +551,13 @@ export default async function PreventivoPage({
           <div className="flex flex-wrap gap-2">
             {uiStatus(quote?.status) === "confermato" ? <div className="rounded-xl bg-secondary px-4 py-3 text-sm font-semibold text-primary">✓ Preventivo confermato. Il contratto era già stato generato alla presentazione.</div> : <div className="rounded-xl border border-primary/20 bg-secondary px-4 py-3 text-sm text-primary">Il contratto viene generato automaticamente quando il preventivo viene presentato. La conferma della coppia registra la decisione degli sposi.</div>}
             <Link href={`/protected/coppie/${coupleId}/progetto`} className="rounded-xl border border-border bg-card px-4 py-3 text-sm font-semibold">Progetto floreale</Link>
-            {quote && !couple.portal_enabled && ["presentato", "in_attesa_conferma", "confermato"].includes(quote.status) && (
+            {quote && !couple.portal_enabled && ["presentato", "in_attesa_conferma", "confermato"].includes(quote.status) && !(quote.status === "confermato" && linkedContract?.document_id) && (
               <form action={confermaPreventivoManualmente} className="w-full rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950 lg:w-auto">
                 <input type="hidden" name="couple_id" value={coupleId} />
                 <input type="hidden" name="quote_id" value={quote.id} />
                 <p className="mb-2 font-semibold">Area Sposi disabilitata</p>
                 <p className="mb-3">Puoi registrare qui la conferma ricevuta direttamente dai clienti e assicurarti che il contratto sia generato.</p>
-                <button className="ef-button-primary" type="submit">{quote.status === "confermato" && linkedContract?.document_id ? "Verifica / rigenera collegamento contratto" : "Conferma manualmente e genera contratto"}</button>
+                <button className="ef-button-primary" type="submit">{quote.status === "confermato" ? "Genera il contratto mancante" : "Conferma manualmente e genera contratto"}</button>
               </form>
             )}
             {quote && (
