@@ -6,7 +6,7 @@ export type ContractData = {
   wedding: { date?: string | null; time?: string | null; venue?: string | null; church?: string | null; reception?: string | null };
   project: { name: string; status?: string | null; notes?: string | null; total?: number | null };
   items: Array<{ name: string; category?: string | null; description?: string | null; quantity?: number | null; unit?: string | null; notes?: string | null; flowers?: string[]; structures?: string[] }>;
-  quote?: { status?: string | null; vatRate?: number | null; total?: number | null; deposit?: number | null; balance?: number | null; discount?: number | null; notes?: string | null; items: Array<{ description: string; quantity: number; unit: string }> } | null;
+  quote?: { status?: string | null; vatRate?: number | null; total?: number | null; deposit?: number | null; balance?: number | null; discount?: number | null; notes?: string | null; items: Array<{ area?: string | null; description: string; quantity: number; unit: string }> } | null;
 };
 
 function winAnsi(text:string){
@@ -75,7 +75,28 @@ function contractLines(data:ContractData){
   lines.push("TOTALE CONTRATTO: "+money(data.quote?.total??data.project.total));
   if(data.quote?.items?.length){
     lines.push("Riepilogo delle voci del preventivo:");
-    data.quote.items.forEach((it,i)=>lines.push(String(i+1)+". "+it.description+" – "+it.quantity+" "+it.unit));
+    const bouquetItems: typeof data.quote.items = [];
+    const regularItems: typeof data.quote.items = [];
+    const isBouquet = (it: typeof data.quote.items[number]) => {
+      const area = String(it.area || "").toLowerCase();
+      const description = String(it.description || "").toLowerCase();
+      return area.startsWith("bouquet") || /bouquet|\bprincipale\b|\bsuocera\b|\blancio\b/.test(description);
+    };
+    data.quote.items.forEach((it) => (isBouquet(it) ? bouquetItems : regularItems).push(it));
+    let index = 1;
+    regularItems.forEach((it) => {
+      lines.push(String(index++)+". "+it.description+" – "+it.quantity+" "+it.unit);
+    });
+    if(bouquetItems.length){
+      lines.push("Bouquet:");
+      bouquetItems.forEach((it) => {
+        const description = String(it.description || "").trim();
+        const choice = description
+          .replace(/^bouquet(?:\s+della\s+sposa)?\s*[:–—-]?\s*/i, "")
+          .trim() || description;
+        lines.push("  - "+choice+" – "+it.quantity+" "+it.unit);
+      });
+    }
     lines.push("");
   }
   addSection(lines,"ART. 4 – VARIAZIONI DEL PROGETTO",["Eventuali richieste aggiuntive o modifiche successive alla generazione del presente contratto dovranno essere concordate tra le parti e potranno comportare l’emissione di una nuova versione del Preventivo e del Contratto."]);
